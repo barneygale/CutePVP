@@ -1,0 +1,13 @@
+name: playzorz
+main: com.c45y.playzorz.playzorz
+version: 0.9
+permissions:
+    playzorz.mod:
+        description: asdf
+        default: op
+commands:
+  asdf:
+    description: set config things
+    permission: playzorz.mod
+    usage: |
+           /asdf: set config things
