@@ -83,10 +83,10 @@ public class CutePVP extends JavaPlugin {
                 this.getConfig().addDefault("ctf.green.curr.y", null);
                 this.getConfig().addDefault("ctf.green.curr.z", null);
                 
-                this.getConfig().addDefault("ctf.red.carier", null);
-                this.getConfig().addDefault("ctf.blue.carier", null);
-                this.getConfig().addDefault("ctf.yellow.carier", null);
-                this.getConfig().addDefault("ctf.green.carier", null);
+                this.getConfig().addDefault("ctf.red.carrier", null);
+                this.getConfig().addDefault("ctf.blue.carrier", null);
+                this.getConfig().addDefault("ctf.yellow.carrier", null);
+                this.getConfig().addDefault("ctf.green.carrier", null);
                 
 		this.getConfig().addDefault("base.protection.radius", 50);
 		this.getConfig().addDefault("count.red", 0);
@@ -407,16 +407,16 @@ public class CutePVP extends JavaPlugin {
 	}
 
     String carrierFor(Player player) {
-        if (player.getName().equalsIgnoreCase(getConfig().getString("ctf.red.carier"))) {
+        if (player.getName().equalsIgnoreCase(getConfig().getString("ctf.red.carrier"))) {
             return "red";
         }
-        if (player.getName().equalsIgnoreCase(getConfig().getString("ctf.blue.carier"))) {
+        if (player.getName().equalsIgnoreCase(getConfig().getString("ctf.blue.carrier"))) {
             return "blue";
         }
-        if (player.getName().equalsIgnoreCase(getConfig().getString("ctf.yellow.carier"))) {
+        if (player.getName().equalsIgnoreCase(getConfig().getString("ctf.yellow.carrier"))) {
             return "yellow";
         }
-        if (player.getName().equalsIgnoreCase(getConfig().getString("ctf.green.carier"))) {
+        if (player.getName().equalsIgnoreCase(getConfig().getString("ctf.green.carrier"))) {
             return "green";
         }
         return null;
@@ -457,10 +457,11 @@ public class CutePVP extends JavaPlugin {
     
     //Flag carrier of <team>'s flag
     public String getFlagCarrier(String team) {
-    	return getConfig().getString("ctf. " + team + ".carrier");
+    	return getConfig().getString("ctf. " + team.trim() + ".carrier");
     }
     public void setFlagCarrier(String team, String player) {
-    	getConfig().set("ctf. " + team + ".carrier", player);
+    	getConfig().set("ctf. " + team.trim() + ".carrier", player);
+        saveConfig();
     }
 
     void takeFlag(String woolTeamName, Player player) {

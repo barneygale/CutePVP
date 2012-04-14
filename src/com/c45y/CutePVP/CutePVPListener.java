@@ -231,8 +231,12 @@ public class CutePVPListener implements Listener{
         public void onPlayerDeath(PlayerDeathEvent event) {
             String carrierFor = plugin.carrierFor(event.getEntity());
             if (carrierFor != null) {
+                System.out.println("========= " + event.getEntity() + " is carrier for " + carrierFor);
                 plugin.setTeamFlagLoc(carrierFor, event.getEntity().getLocation().add(0, 1, 0));
                 plugin.dropTime.put(carrierFor, System.currentTimeMillis());
+            }
+            else {
+                System.out.println("========= " + event.getEntity() + " is not a carrier.");
             }
         }
 	
