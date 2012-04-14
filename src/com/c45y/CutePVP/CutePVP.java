@@ -234,7 +234,20 @@ public class CutePVP extends JavaPlugin {
 	}
 
 	public int getTeam(String inpt) {
-		return (Character.getNumericValue(ChatColor.stripColor(inpt).charAt(0)) % 4);
+		int value = Character.getNumericValue(ChatColor.stripColor(inpt).charAt(-1));
+		for(int i: new int[] { 10, 11, 23, 30, 33 } ) {
+			if(value == i) return 0;
+		}
+		for(int i: new int[] { 14, 17, 28, 21, 29 } ) {
+			if(value == i) return 1;
+		}
+		for(int i: new int[] { 12, 13, 15, 18, 25, 31, 32 } ) {
+			if(value == i) return 2;
+		}
+		for(int i: new int[] { 0, 16, 19, 20, 22, 24, 27, 34, 35 } ) {
+			if(value == i) return 3;
+		}
+		return 0;
 	}
 
 	public Location getRespawnTeamLocation(String playerName) {
