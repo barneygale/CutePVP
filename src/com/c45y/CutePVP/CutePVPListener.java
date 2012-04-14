@@ -1,5 +1,6 @@
 package com.c45y.CutePVP;
 
+
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -20,6 +21,8 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 
 public class CutePVPListener implements Listener{
 	public final CutePVP p;
@@ -152,17 +155,17 @@ public class CutePVPListener implements Listener{
 		}
 		Player player = event.getPlayer();
 		event.setCancelled(true);
-		for (Player playeri : p.getServer().getOnlinePlayers()) {
-			if (p.getTeam(player.getName()) == p.getTeam(playeri.getName()) || playeri.isOp()) {
-				playeri.sendMessage("<" + player.getDisplayName() + "> " + event.getMessage());
-			}
-		}
+		p.teamChat(p.teamNameFromInt(p.getTeam(player.getName())), "<" + player.getDisplayName() + "> " + event.getMessage());
 	}
 	
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void onBlockPlace(BlockPlaceEvent event) {
 		if ( event.getPlayer().getGameMode() == GameMode.CREATIVE ){
 			return;
+		}
+		int team = p.isFlagBlock(event.getBlock().getX(), event.getBlock().getY(), event.getBlock().getZ());
+		if (team != -1) {
+			event.setCancelled(true);
 		}
 		if (p.getInRangeOfEnemyTeamSpawn(event.getPlayer())) {
 			event.getPlayer().sendMessage(ChatColor.DARK_RED + "You cannot build in an enemy base");
@@ -173,12 +176,37 @@ public class CutePVPListener implements Listener{
 	
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent event) {
+		Player player = event.getPlayer();
 		if ( event.getPlayer().getGameMode() == GameMode.CREATIVE ){
 			return;
 		}
-		if (p.getInRangeOfEnemyTeamSpawn(event.getPlayer())) {
-			event.getPlayer().sendMessage(ChatColor.DARK_RED + "You cannot build in an enemy base");
-			event.setCancelled(true);
+
+		
+		//Check if it's a flag
+		int team = p.isFlagBlock(event.getBlock().getX(), event.getBlock().getY(), event.getBlock().getZ());
+		if (team != -1) {
+			System.out.println("Destroyed a flag block!");
+			
+			//Enemy player...
+			if (p.getInRangeOfEnemyTeamSpawn(event.getPlayer())) {
+				String teamName = p.woolColorToTeamName((short)event.getBlock().getData());
+				p.chat(player.getDisplayName() + " has the " + teamName + " team flag!");
+				p.setFlagCarrier(teamName, player.getName());
+				//event.getBlock().setTypeIdAndData(35, event.getBlock().getData(), true);
+				ItemStack stack = new ItemStack(35, 1, (short)event.getBlock().getData());
+				Inventory inv = event.getPlayer().getInventory();
+				inv.addItem(stack);
+				event.getBlock().setTypeId(0);
+				event.setCancelled(true);
+			} else {
+				event.setCancelled(true);
+			}
+		} else {
+			//If they're in an enemy base...
+			if (p.getInRangeOfEnemyTeamSpawn(event.getPlayer())) {
+				event.getPlayer().sendMessage(ChatColor.DARK_RED + "You cannot build in an enemy base");
+				event.setCancelled(true);
+			}
 		}
 	}
 }

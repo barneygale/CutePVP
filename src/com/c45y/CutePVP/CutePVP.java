@@ -67,16 +67,7 @@ public class CutePVP extends JavaPlugin {
 				if (getServer().getWorlds().get(0).getBlockAt(powerblock) != null) {
 					Block gPowerBlock = getServer().getWorlds().get(0).getBlockAt(powerblock);
 					if (gPowerBlock.getType() == Material.WOOL) {
-						String winTeam = null;
-						if (gPowerBlock.getData() == (short) 14) {
-							winTeam = "red";
-						} else if (gPowerBlock.getData() == (short) 3) {
-							winTeam = "blue";
-						} else if (gPowerBlock.getData() == (short) 4) {
-							winTeam = "yellow";
-						} else if (gPowerBlock.getData() == (short) 5) {
-							winTeam = "green";
-						}
+						String winTeam = woolColorToTeamName(gPowerBlock.getData());
 						if (winTeam != null) {
 							getServer().broadcastMessage("[NOTICE] " + winTeam + " gets buff!");
 							for (Player playeri : getServer().getOnlinePlayers()) {
@@ -122,6 +113,7 @@ public class CutePVP extends JavaPlugin {
 		}
 		if (command.getName().equalsIgnoreCase("g")) {
 			String str = StringUtils.join(args, " ");
+			chat("<" + sender.getName() + "> " + str);
 			for (Player playeri : getServer().getOnlinePlayers()) {
 				playeri.sendMessage(ChatColor.RED + ">" + ChatColor.BLUE + ">" + ChatColor.GREEN + ">" + ChatColor.YELLOW + ">" + ChatColor.WHITE + " <" + colorName(sender.getName()) + "> " + str);
 			}
@@ -137,6 +129,20 @@ public class CutePVP extends JavaPlugin {
 	public Location getRespawnTeamLocation(String playerName) {
 		String team = teamName(playerName);
 		return getRespawnTeamLocationByTeam(team);
+	}
+	
+	public String woolColorToTeamName(short metadata) {
+		switch(metadata) {
+			case 14:
+				return "red";
+			case 3:
+				return "blue";
+			case 4:
+				return "yellow";
+			case 5:
+				return "green";
+		}
+		return null;
 	}
 
 	public Location getRespawnTeamLocationByTeam(String teamName) {
@@ -227,5 +233,38 @@ public class CutePVP extends JavaPlugin {
 		}
 		retName += (inpt + ChatColor.WHITE);
 		return retName;
+	}
+	public int isFlagBlock(int x, int y, int z) {
+		for(int i=0; i<4; i++) {
+			String teamName = teamNameFromInt(i);
+			if( getConfig().getInt("flag." + teamName + ".x") == x &&
+				getConfig().getInt("flag." + teamName + ".y") == y &&
+				getConfig().getInt("flag." + teamName + ".z") == z) {
+				
+				return i;
+				
+			}
+		}
+		return -1;
+	}
+	public void chat(String message) {
+		for (Player playeri : getServer().getOnlinePlayers()) {
+			playeri.sendMessage(message);
+		}
+	}
+	public void teamChat(String team, String message) {
+		for (Player playeri : getServer().getOnlinePlayers()) {
+			if (teamName(playeri.getName()) == team) {
+				playeri.sendMessage(message);
+			}
+		}
+	}
+	
+	//Flag carrier of <team>'s flag
+	public String getFlagCarrier(String team) {
+		return getConfig().getString("carrier."+team);
+	}
+	public void setFlagCarrier(String team, String player) {
+		getConfig().set("carrier."+team, player);
 	}
 }
