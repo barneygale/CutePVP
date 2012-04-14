@@ -153,9 +153,10 @@ public class CutePVPListener implements Listener{
 			return;
 		}
 		Player player = event.getPlayer();
+		p.getLogger().info(player.getName() + ": " + ChatColor.stripColor(event.getMessage()));
 		event.setCancelled(true);
 		for (Player playeri : p.getServer().getOnlinePlayers()) {
-			if (p.getTeam(player.getName()) == p.getTeam(playeri.getName())) {
+			if (p.getTeam(player.getName()) == p.getTeam(playeri.getName()) || playeri.isOp()) {
 				playeri.sendMessage("<" + player.getDisplayName() + "> " + ChatColor.stripColor(event.getMessage()));
 			}
 		}
@@ -192,7 +193,7 @@ public class CutePVPListener implements Listener{
 			String carrierTeamName = p.teamName(event.getPlayer().getName());
 			
 			//Enemy player...
-			if(woolTeamName != carrierTeamName)
+			if(woolTeamName != carrierTeamName) {
 				p.chat(player.getDisplayName() + " has the " + woolTeamName + " team flag!");
 				p.setFlagCarrier(woolTeamName, player.getName());
 				//event.getBlock().setTypeIdAndData(35, event.getBlock().getData(), true);
