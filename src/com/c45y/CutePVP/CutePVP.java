@@ -132,6 +132,25 @@ public class CutePVP extends JavaPlugin {
 				getLogger().info("End running buff");
 			}
 		}, 1200, 12000);
+		
+		getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
+			public void run() {
+				//Need to loop over all teams, check if their carrier is offline
+				//If so we increment a config value.
+				//If it gets above 5, return
+				for(int i = 0; i<4; i++) {
+					String team = teamNameFromInt(i);
+					String carrier = getFlagCarrier(team);
+					if(carrier != null) {
+						int old = getConfig().getInt("flag."+team+".expiry");
+						getConfig().set("flag."+team+".expiry", old+1);
+						if(old+1 > 5) {
+							getServer().broadcastMessage("Flag carrier gone for 5 mins, returning...");
+						}
+					}
+				}
+			}
+		}, 1200, 1200);
 	}
 
 	public void onDisable() {
@@ -238,6 +257,13 @@ public class CutePVP extends JavaPlugin {
 		}
 		return null;
 	}
+	public int teamNameToWoolColor(String team) {
+		if (team == "red")    return 14;
+		if (team == "blue")   return 3;
+		if (team == "yellow") return 4;
+		if (team == "green")  return 5;
+		return 0;
+	}
 
 	public Location getRespawnTeamLocationByTeam(String teamName) {
 		return new Location(
@@ -283,14 +309,7 @@ public class CutePVP extends JavaPlugin {
 	}
 
 	public short woolColor(String inpt) {
-		int ret = getTeam(inpt);
-		switch (ret) {
-		case 0: return 14; // Red
-		case 1: return 3;  // Blue
-		case 2: return 4;  // Yellow
-		case 3: return 5;  // Green
-		}
-		return (short) ret;
+		return (short)teamNameToWoolColor(teamName(inpt));
 	}
 	
 	public byte woolColorByName(String inpt) {
@@ -402,6 +421,22 @@ public class CutePVP extends JavaPlugin {
         if (flagSpawn != null) {
             getServer().getWorlds().get(0).getBlockAt(flagSpawn).setTypeIdAndData(35, (byte)woolColor(woolTeamName), true);
         }
+    }
+        
+    public void teamChat(String team, String message) {
+    	for (Player playeri : getServer().getOnlinePlayers()) {
+    		if (teamName(playeri.getName()) == team) {
+    				playeri.sendMessage(message);
+    		}
+    	}
+    }
+    
+    //Flag carrier of <team>'s flag
+    public String getFlagCarrier(String team) {
+    	return getConfig().getString("carrier."+team);
+    }
+    public void setFlagCarrier(String team, String player) {
+    	getConfig().set("carrier."+team, player);
     }
 
 }

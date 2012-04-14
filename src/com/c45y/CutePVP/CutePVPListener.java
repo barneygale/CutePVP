@@ -4,9 +4,11 @@ import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Arrow;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -15,6 +17,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -24,6 +27,8 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 
 public class CutePVPListener implements Listener{
 	public final CutePVP plugin;
@@ -218,7 +223,7 @@ public class CutePVPListener implements Listener{
 			}
 		}
 	}
-	
+
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void onBlockPlace(BlockPlaceEvent event) {
 		if ( event.getPlayer().getGameMode() == GameMode.CREATIVE ) {
@@ -245,13 +250,19 @@ public class CutePVPListener implements Listener{
 		if (team != -1) {
 			System.out.println("Destroyed a flag block!");
 			
-			String woolTeamName = plugin.woolColorToTeamName((short)event.getBlock().getData());
+			String woolTeamName = plugin.teamNameFromInt(team);
 			String carrierTeamName = plugin.teamName(event.getPlayer().getName());
 			
 			//Enemy player...
 			if(woolTeamName != carrierTeamName) {
-				plugin.getServer().broadcastMessage(player.getDisplayName() + " destroyed " + woolTeamName + " team flag!");
-				plugin.getConfig().set("count." + carrierTeamName, plugin.getConfig().getInt("count." + carrierTeamName) + 1);
+				plugin.getServer().broadcastMessage(player.getDisplayName() + " has the " + woolTeamName + " team flag!");
+				plugin.setFlagCarrier(woolTeamName, player.getName());
+				//event.getBlock().setTypeIdAndData(35, event.getBlock().getData(), true);
+				ItemStack stack = new ItemStack(35, 1, (short)event.getBlock().getData());
+				Inventory inv = event.getPlayer().getInventory();
+				inv.addItem(stack);
+				event.getBlock().setTypeId(0);
+				event.setCancelled(true);
 			} else {
 				event.setCancelled(true);
 			}
