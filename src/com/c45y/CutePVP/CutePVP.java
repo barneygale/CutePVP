@@ -2,6 +2,7 @@ package com.c45y.CutePVP;
 
 import java.util.logging.Logger;
 
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -113,6 +114,13 @@ public class CutePVP extends JavaPlugin {
 			}
 			saveConfig();
 			player.sendMessage("Set to: " + block.getType().toString());
+			return true;
+		}
+		if (command.getName().equalsIgnoreCase("g")) {
+			String str = StringUtils.join(args, " ");
+			for (Player playeri : getServer().getOnlinePlayers()) {
+				playeri.sendMessage("<" + colorName(sender.getName()) + "> " + str);
+			}
 			return true;
 		}
 		return false;
