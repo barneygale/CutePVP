@@ -20,6 +20,7 @@ import org.bukkit.potion.PotionEffectType;
 public class CutePVP extends JavaPlugin {
 	private final CutePVPListener loglistener = new CutePVPListener(this);
         HashMap<String, String> fposSet = new HashMap<String, String>();
+        HashMap<String, Long> dropTime = new HashMap<String, Long>();
         
 	@Override
 	public void onEnable() {
@@ -96,6 +97,13 @@ public class CutePVP extends JavaPlugin {
 		pm.registerEvents(loglistener, this);
 		System.out.println(this.toString() + " enabled");
 
+                getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
+
+            public void run() {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+                }, 1200, 1200);
+                
 		getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
 			public void run() {
 				getServer().broadcastMessage(ChatColor.DARK_PURPLE + "[NOTICE] Flags are respawning!");
@@ -131,11 +139,35 @@ public class CutePVP extends JavaPlugin {
 	}
         
         public Location getTeamFlagLoc(String team) {
-            return new Location(getServer().getWorlds().get(0),
-                    getConfig().getInt("ctf. " + team + " .curr.x"),
-                    getConfig().getInt("ctf. " + team + " .curr.y"),
-                    getConfig().getInt("ctf. " + team + " .curr.z")
-            );
+            try {
+                return new Location(getServer().getWorlds().get(0),
+                        getConfig().getInt("ctf. " + team + " .curr.x"),
+                        getConfig().getInt("ctf. " + team + " .curr.y"),
+                        getConfig().getInt("ctf. " + team + " .curr.z")
+                );
+            }
+            catch (Exception ex) {
+                return null;
+            }
+        }
+        
+        public void setTeamFlagLoc(String team, Location loc) {
+            getConfig().set("ctf. " + team + " .curr.x", loc.getBlockX());
+            getConfig().set("ctf. " + team + " .curr.y",loc.getBlockY());
+            getConfig().set("ctf. " + team + " .curr.z", loc.getBlockZ());
+        }
+        
+        public Location getTeamFlagSpawnLoc(String team) {
+            try {
+                return new Location(getServer().getWorlds().get(0),
+                        getConfig().getInt("ctf. " + team + " .x"),
+                        getConfig().getInt("ctf. " + team + " .y"),
+                        getConfig().getInt("ctf. " + team + " .z")
+                );
+            }
+            catch (Exception ex) {
+                return null;
+            }
         }
 
 	@Override
@@ -357,6 +389,19 @@ public class CutePVP extends JavaPlugin {
     
     void messageCap(String capTeam, String cappedTeam) {
         getServer().broadcastMessage(String.format("%sTeam %s just capped the %s flag", ChatColor.GREEN, capTeam, cappedTeam));
+    }
+
+    void returnFlag(String woolTeamName) {
+        Location flag = getTeamFlagLoc(woolTeamName);
+        Location flagSpawn = getTeamFlagSpawnLoc(woolTeamName);
+        
+        if (flag != null) {
+            getServer().getWorlds().get(0).getBlockAt(flag).setType(Material.AIR);
+        }
+        
+        if (flagSpawn != null) {
+            getServer().getWorlds().get(0).getBlockAt(flagSpawn).setTypeIdAndData(35, (byte)woolColor(woolTeamName), true);
+        }
     }
 
 }

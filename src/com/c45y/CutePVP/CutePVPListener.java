@@ -15,6 +15,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerChatEvent;
@@ -162,7 +163,6 @@ public class CutePVPListener implements Listener{
             }
             
             String woolTeamName = plugin.woolColorToTeamName((short)b.getData());
-            
             Location blockLoc = plugin.getTeamFlagLoc(woolTeamName);
             
             if (b.getLocation().getBlockX() == blockLoc.getBlockX() &&
@@ -171,15 +171,36 @@ public class CutePVPListener implements Listener{
                 String carrierTeamName = plugin.teamName(event.getPlayer().getName());
                 
                 if (carrierTeamName == woolTeamName) {
-                    String carryFor = plugin.carrierFor(player);
                     
-                    if (carryFor != null) {
-                        if (!carryFor.equalsIgnoreCase(carrierTeamName)) {
-                            plugin.capForTeam(carrierTeamName);
-                            plugin.messageCap(carrierTeamName, carryFor);
+                    Location flagSpawnLoc = plugin.getTeamFlagSpawnLoc(woolTeamName);
+                    
+                    if (b.getLocation().getBlockX() == flagSpawnLoc.getBlockX() &&
+                        b.getLocation().getBlockY() == flagSpawnLoc.getBlockY() &&
+                        b.getLocation().getBlockZ() == flagSpawnLoc.getBlockZ()) {
+                    
+                        String carryFor = plugin.carrierFor(player);
+
+                        if (carryFor != null) {
+                            if (!carryFor.equalsIgnoreCase(carrierTeamName)) {
+                                plugin.capForTeam(carrierTeamName);
+                                plugin.messageCap(carrierTeamName, carryFor);
+                            }
                         }
                     }
+                    
+                    else {
+                        plugin.returnFlag(woolTeamName);
+                    }
                 }
+            }
+        }
+        
+        @EventHandler(priority= EventPriority.HIGHEST, ignoreCancelled= true)
+        public void onPlayerDeath(PlayerDeathEvent event) {
+            String carrierFor = plugin.carrierFor(event.getEntity());
+            if (carrierFor != null) {
+                plugin.setTeamFlagLoc(carrierFor, event.getEntity().getLocation().add(0, 1, 0));
+                plugin.dropTime.put(carrierFor, System.currentTimeMillis());
             }
         }
 	
