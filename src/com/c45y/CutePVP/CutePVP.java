@@ -140,6 +140,12 @@ public class CutePVP extends JavaPlugin {
                                     keystoRemove.add(s);
                                 }
                             }
+                            
+                            for (Player p : getServer().getOnlinePlayers()) {
+                                String team = teamNameFromInt(getTeam(p.getName()));
+                                p.setCompassTarget(getTeamFlagLoc(team));
+                            }
+                            
                             for (String s : keystoRemove) {
                                 dropTime.remove(s);
                             }
@@ -499,13 +505,19 @@ public class CutePVP extends JavaPlugin {
     }
 
     void takeFlag(String woolTeamName, Player player) {
-        setFlagCarrier(woolTeamName, player.getName());
-        Block b = getServer().getWorlds().get(0).getBlockAt(getTeamFlagLoc(woolTeamName));
-        b.setType(Material.AIR);
-        getServer().broadcastMessage(player.getDisplayName() + " has taken the " + woolTeamName + " flag.");
+        String c = carrierFor(player);
         
-        if (dropTime.containsKey(woolTeamName)) {
-            dropTime.remove(woolTeamName);
+        if (c == null) {
+            setFlagCarrier(woolTeamName, player.getName());
+            Block b = getServer().getWorlds().get(0).getBlockAt(getTeamFlagLoc(woolTeamName));
+            b.setType(Material.AIR);
+            getServer().broadcastMessage(player.getDisplayName() + " has taken the " + woolTeamName + " flag.");
+
+            if (dropTime.containsKey(woolTeamName)) {
+                dropTime.remove(woolTeamName);
+            }
+        } else {
+            player.sendMessage(ChatColor.RED + "You can only take one flag at a time!");
         }
     }
 
