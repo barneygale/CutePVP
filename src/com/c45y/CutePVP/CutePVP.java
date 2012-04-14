@@ -89,6 +89,11 @@ public class CutePVP extends JavaPlugin {
                 this.getConfig().addDefault("ctf.yellow.carrier", null);
                 this.getConfig().addDefault("ctf.green.carrier", null);
                 
+                this.getConfig().addDefault("kills.red", 0);
+                this.getConfig().addDefault("kills.blue", 0);
+                this.getConfig().addDefault("kills.yellow", 0);
+                this.getConfig().addDefault("kills.green", 0);
+                
 		this.getConfig().addDefault("base.protection.radius", 50);
 		this.getConfig().addDefault("count.red", 0);
 		this.getConfig().addDefault("count.blue", 0);
@@ -149,18 +154,6 @@ public class CutePVP extends JavaPlugin {
                             for (String s : keystoRemove) {
                                 dropTime.remove(s);
                             }
-                            
-				for(int i = 0; i<4; i++) {
-					String team = teamNameFromInt(i);
-					String carrier = getFlagCarrier(team);
-					if(carrier != null) {
-						int old = getConfig().getInt("flag."+team+".expiry");
-						getConfig().set("flag."+team+".expiry", old+1);
-						if(old+1 > 5) {
-							getServer().broadcastMessage("Flag carrier gone for 5 mins, returning...");
-						}
-					}
-				}
 			}
 		}, 1200, 1200);
 	}
@@ -460,6 +453,11 @@ public class CutePVP extends JavaPlugin {
         saveConfig();
     }
     
+    void killForTeam(String team) {
+        getConfig().set("kills." + team, getConfig().getInt("kills." + team) + 1);
+        saveConfig();
+    }
+    
     void messageCap(String capTeam, String cappedTeam) {
         getServer().broadcastMessage(String.format("%sTeam %s just capped the %s flag", ChatColor.GREEN, capTeam, cappedTeam));
     }
@@ -469,7 +467,6 @@ public class CutePVP extends JavaPlugin {
         Location flagSpawn = getTeamFlagSpawnLoc(woolTeamName);
         
         if (flag != null) {
-            
             getServer().getWorlds().get(0).getBlockAt(flag).setType(Material.AIR);
         }else
         {
@@ -532,4 +529,6 @@ public class CutePVP extends JavaPlugin {
         else {
         }
     }
+    
+    
 }
