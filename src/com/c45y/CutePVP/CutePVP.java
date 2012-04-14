@@ -119,7 +119,7 @@ public class CutePVP extends JavaPlugin {
 		if (command.getName().equalsIgnoreCase("g")) {
 			String str = StringUtils.join(args, " ");
 			for (Player playeri : getServer().getOnlinePlayers()) {
-				playeri.sendMessage("<" + colorName(sender.getName()) + "> " + str);
+				playeri.sendMessage("<" + sender.getName() + "> " + str);
 			}
 			return true;
 		}
