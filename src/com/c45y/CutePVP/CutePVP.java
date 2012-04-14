@@ -1,7 +1,7 @@
 package com.c45y.CutePVP;
 
-import java.util.logging.Logger;
-
+import java.util.Dictionary;
+import java.util.HashMap;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -19,8 +19,8 @@ import org.bukkit.potion.PotionEffectType;
 
 public class CutePVP extends JavaPlugin {
 	private final CutePVPListener loglistener = new CutePVPListener(this);
-	Logger log = Logger.getLogger("Minecraft");
-
+        HashMap<String, String> fposSet = new HashMap<String, String>();
+        
 	@Override
 	public void onEnable() {
 		this.getConfig().options().copyDefaults(true);
@@ -49,8 +49,48 @@ public class CutePVP extends JavaPlugin {
 		this.getConfig().addDefault("block.buff.y", getServer().getWorlds().get(0).getSpawnLocation().getY());
 		this.getConfig().addDefault("block.buff.z", getServer().getWorlds().get(0).getSpawnLocation().getZ());
 
+                this.getConfig().addDefault("ctf.red.x", null);
+                this.getConfig().addDefault("ctf.red.y", null);
+                this.getConfig().addDefault("ctf.red.z", null);
+                
+                this.getConfig().addDefault("ctf.blue.x", null);
+                this.getConfig().addDefault("ctf.blue.y", null);
+                this.getConfig().addDefault("ctf.blue.z", null);
+                
+                this.getConfig().addDefault("ctf.yellow.x", null);
+                this.getConfig().addDefault("ctf.yellow.y", null);
+                this.getConfig().addDefault("ctf.yellow.z", null);
+                
+                this.getConfig().addDefault("ctf.green.x", null);
+                this.getConfig().addDefault("ctf.green.y", null);
+                this.getConfig().addDefault("ctf.green.z", null);
+                
+                this.getConfig().addDefault("ctf.red.curr.x", null);
+                this.getConfig().addDefault("ctf.red.curr.y", null);
+                this.getConfig().addDefault("ctf.red.curr.z", null);
+                
+                this.getConfig().addDefault("ctf.blue.curr.x", null);
+                this.getConfig().addDefault("ctf.blue.curr.y", null);
+                this.getConfig().addDefault("ctf.blue.curr.z", null);
+                
+                this.getConfig().addDefault("ctf.yellow.curr.x", null);
+                this.getConfig().addDefault("ctf.yellow.curr.y", null);
+                this.getConfig().addDefault("ctf.yellow.curr.z", null);
+                
+                this.getConfig().addDefault("ctf.green.curr.x", null);
+                this.getConfig().addDefault("ctf.green.curr.y", null);
+                this.getConfig().addDefault("ctf.green.curr.z", null);
+                
+                this.getConfig().addDefault("ctf.red.carier", null);
+                this.getConfig().addDefault("ctf.blue.carier", null);
+                this.getConfig().addDefault("ctf.yellow.carier", null);
+                this.getConfig().addDefault("ctf.green.carier", null);
+                
 		this.getConfig().addDefault("base.protection.radius", 50);
-
+		this.getConfig().addDefault("count.red", 0);
+		this.getConfig().addDefault("count.blue", 0);
+		this.getConfig().addDefault("count.yellow", 0);
+		this.getConfig().addDefault("count.green", 0);
 		saveConfig();
 		PluginManager pm = getServer().getPluginManager();
 		pm.registerEvents(loglistener, this);
@@ -58,6 +98,8 @@ public class CutePVP extends JavaPlugin {
 
 		getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
 			public void run() {
+				getServer().broadcastMessage(ChatColor.DARK_PURPLE + "[NOTICE] Flags are respawning!");
+				respawnFlags();
 				getLogger().info("Running buff");
 				Location powerblock = new Location(
 						getServer().getWorlds().get(0),
@@ -69,12 +111,11 @@ public class CutePVP extends JavaPlugin {
 					if (gPowerBlock.getType() == Material.WOOL) {
 						String winTeam = woolColorToTeamName(gPowerBlock.getData());
 						if (winTeam != null) {
-							getServer().broadcastMessage("[NOTICE] " + winTeam + " gets buff!");
+							getServer().broadcastMessage(ChatColor.DARK_PURPLE + "[NOTICE] " + winTeam + " gets buff!");
 							for (Player playeri : getServer().getOnlinePlayers()) {
 								if (teamName(playeri.getName()) == winTeam) {
 									playeri.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 12000, 0));
 									playeri.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 1200, 1));
-									playeri.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 12000, 0));
 								}
 							}
 						}
@@ -96,7 +137,7 @@ public class CutePVP extends JavaPlugin {
 						int old = getConfig().getInt("flag."+team+".expiry");
 						getConfig().set("flag."+team+".expiry", old+1);
 						if(old+1 > 5) {
-							chat("OK, we kill the flag carrier for logging off now!");
+							getServer().broadcastMessage("Flag carrier gone for 5 mins, returning...");
 						}
 					}
 				}
@@ -105,8 +146,16 @@ public class CutePVP extends JavaPlugin {
 	}
 
 	public void onDisable() {
-		log.info("playzorz disabled.");
+		System.out.println(this.toString() + " disabled");
 	}
+        
+        public Location getTeamFlagLoc(String team) {
+            return new Location(getServer().getWorlds().get(0),
+                    getConfig().getInt("ctf. " + team + " .curr.x"),
+                    getConfig().getInt("ctf. " + team + " .curr.y"),
+                    getConfig().getInt("ctf. " + team + " .curr.z")
+            );
+        }
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) {
@@ -130,14 +179,27 @@ public class CutePVP extends JavaPlugin {
 			player.sendMessage("Set to: " + block.getType().toString());
 			return true;
 		}
-		if (command.getName().equalsIgnoreCase("g")) {
+                else if (command.getName().equalsIgnoreCase("g")) {
 			String str = StringUtils.join(args, " ");
-			chat("<" + sender.getName() + "> " + ChatColor.stripColor(str));
 			for (Player playeri : getServer().getOnlinePlayers()) {
 				playeri.sendMessage(ChatColor.RED + ">" + ChatColor.BLUE + ">" + ChatColor.GREEN + ">" + ChatColor.YELLOW + ">" + ChatColor.WHITE + " <" + colorName(sender.getName()) + "> " + str);
 			}
 			return true;
 		}
+                else if (command.getName().equalsIgnoreCase("fpos")) {
+                    if (args.length == 0) {
+                        if (fposSet.containsKey(sender.getName())) {
+                            fposSet.remove(sender.getName());
+                            return true;
+                        }
+                        return false;
+                    }
+                    if ( woolColorByName(args[0]) == 0) {
+                        return false;
+                    }
+                    fposSet.put(sender.getName(), args[0]);
+                    sender.sendMessage("You are now setting the " + args[0] + " flag.");
+                }
 		return false;
 	}
 
@@ -217,6 +279,19 @@ public class CutePVP extends JavaPlugin {
 	public short woolColor(String inpt) {
 		return (short)teamNameToWoolColor(teamName(inpt));
 	}
+	
+	public byte woolColorByName(String inpt) {
+		if (inpt == "red") {
+			return 14;
+		} else if (inpt == "blue") {
+			return 3;
+		} else if (inpt == "yellow") {
+			return 4;
+		} else if (inpt == "green") {
+			return 5;
+		}
+		return 0;
+	}
 
 	public String teamName(String inpt) {
 		int ret = getTeam(inpt);
@@ -253,6 +328,7 @@ public class CutePVP extends JavaPlugin {
 		retName += (inpt + ChatColor.WHITE);
 		return retName;
 	}
+	
 	public int isFlagBlock(int x, int y, int z) {
 		for(int i=0; i<4; i++) {
 			String teamName = teamNameFromInt(i);
@@ -266,26 +342,56 @@ public class CutePVP extends JavaPlugin {
 		}
 		return -1;
 	}
-	public void chat(String message) {
-		for (Player playeri : getServer().getOnlinePlayers()) {
-			playeri.sendMessage(message);
-		}
-	}
-	public void teamChat(String team, String message) {
-		for (Player playeri : getServer().getOnlinePlayers()) {
-			if (teamName(playeri.getName()) == team) {
-				playeri.sendMessage(message);
-			}
-		}
-	}
 	
-	//Flag carrier of <team>'s flag
-	public String getFlagCarrier(String team) {
-		System.out.println(team + " flag carrier: " + getConfig().getString("carrier."+team));
-		return getConfig().getString("carrier."+team);
+	public void respawnFlags() {
+		for(int i=0; i<4; i++) {
+			String teamName = teamNameFromInt(i);
+			Block flag_block = getServer().getWorlds().get(0).getBlockAt(
+					getConfig().getInt("flag." + teamName + ".x"),
+					getConfig().getInt("flag." + teamName + ".y"),
+					getConfig().getInt("flag." + teamName + ".z"));
+			flag_block.setTypeIdAndData(35, woolColorByName(teamName), false);
+		}
 	}
-	public void setFlagCarrier(String team, String player) {
-		System.out.println("Setting "+team+" flag carrier to "+player);
-		getConfig().set("carrier."+team, player);
-	}
+
+    String carrierFor(Player player) {
+        if (player.getName().equalsIgnoreCase(getConfig().getString("ctf.red.carier"))) {
+            return "red";
+        }
+        if (player.getName().equalsIgnoreCase(getConfig().getString("ctf.blue.carier"))) {
+            return "blue";
+        }
+        if (player.getName().equalsIgnoreCase(getConfig().getString("ctf.yellow.carier"))) {
+            return "yellow";
+        }
+        if (player.getName().equalsIgnoreCase(getConfig().getString("ctf.green.carier"))) {
+            return "green";
+        }
+        return null;
+    }
+    
+    void capForTeam(String team) {
+        getConfig().set("count." + team, getConfig().getInt("count." + team) + 1);
+    }
+    
+    void messageCap(String capTeam, String cappedTeam) {
+        getServer().broadcastMessage(String.format("%sTeam %s just capped the %s flag", ChatColor.GREEN, capTeam, cappedTeam));
+    }
+
+    public void teamChat(String team, String message) {
+    	for (Player playeri : getServer().getOnlinePlayers()) {
+    		if (teamName(playeri.getName()) == team) {
+    				playeri.sendMessage(message);
+    		}
+    	}
+    }
+    
+    //Flag carrier of <team>'s flag
+    public String getFlagCarrier(String team) {
+    	return getConfig().getString("carrier."+team);
+    }
+    public void setFlagCarrier(String team, String player) {
+    	getConfig().set("carrier."+team, player);
+    }
+
 }

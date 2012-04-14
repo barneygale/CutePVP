@@ -19,3 +19,8 @@ commands:
     permission: CutePVP.user
     usage: |
            /g [message]
+  fpos:
+    description: enter set flag pos mode
+    permission: CutePVP.mod
+    usage: |
+           /fpos <red|blue|yellow|green>

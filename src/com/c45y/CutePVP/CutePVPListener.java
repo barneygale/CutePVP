@@ -2,6 +2,7 @@ package com.c45y.CutePVP;
 
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -12,6 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -21,6 +23,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -28,10 +31,10 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 public class CutePVPListener implements Listener{
-	public final CutePVP p;
+	public final CutePVP plugin;
 
 	public CutePVPListener(CutePVP instance) {
-		p = instance;
+		plugin = instance;
 	}
 
 	/* Inventory crap, locking the wool in place */
@@ -59,11 +62,11 @@ public class CutePVPListener implements Listener{
 			return;
 		}
 		if (player.getInventory().getHelmet() == null) {
-			player.getInventory().setHelmet(p.returnWool(player.getName()));
+			player.getInventory().setHelmet(plugin.returnWool(player.getName()));
 			return;
 		}
 		if (player.getInventory().getHelmet().getType() != Material.WOOL) {
-			player.getInventory().setHelmet(p.returnWool(player.getName()));
+			player.getInventory().setHelmet(plugin.returnWool(player.getName()));
 			return;
 		}
 	}
@@ -87,18 +90,19 @@ public class CutePVPListener implements Listener{
 
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onPlayerRespawn(PlayerRespawnEvent event) {
-		event.getPlayer().getInventory().setHelmet(p.returnWool(event.getPlayer().getName()));
-		event.setRespawnLocation(p.getRespawnTeamLocation(event.getPlayer().getName()));
+		event.getPlayer().getInventory().setHelmet(plugin.returnWool(event.getPlayer().getName()));
+		event.setRespawnLocation(plugin.getRespawnTeamLocation(event.getPlayer().getName()));
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void onPlayerJoin(PlayerJoinEvent event){
 		Player player = event.getPlayer();
-		player.setDisplayName(p.colorName(event.getPlayer().getName()));
-		player.getInventory().setHelmet(p.returnWool(player.getName()));
+		player.setDisplayName(plugin.colorName(event.getPlayer().getName()));
+		player.getInventory().setHelmet(plugin.returnWool(player.getName()));
 		event.setJoinMessage(player.getDisplayName() + " joined the game.");
         if (!event.getPlayer().hasPlayedBefore()) {
-            event.getPlayer().teleport(p.getRespawnTeamLocationByTeam("all"));
+        	event.getPlayer().sendMessage("Welcome! you are on " + plugin.teamName(event.getPlayer().getName()));
+            event.getPlayer().teleport(plugin.getRespawnTeamLocationByTeam("all"));
         }
 	}
 	
@@ -114,7 +118,7 @@ public class CutePVPListener implements Listener{
 		Block block = player.getLocation().getBlock().getRelative(BlockFace.DOWN);
 		if (block.getType() == Material.WOOL) {
 			if (block.getData() == 14 || block.getData() == 3 || block.getData() == 4 || block.getData() == 5) {
-				if (block.getData() != p.woolColor(player.getName())) {
+				if (block.getData() != plugin.woolColor(player.getName())) {
 					player.damage(1);
 				}
 			}	
@@ -122,16 +126,16 @@ public class CutePVPListener implements Listener{
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-	public void onEntityDamageByEntity(EntityDamageByEntityEvent event){
+	public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
 		if (!(event.getEntity() instanceof Player)) {
 			return;
 		}
 		if ((event.getDamager() instanceof Player)) {
 			Player attacker = (Player) event.getDamager();
 			Player player = (Player) event.getEntity();
-            if (p.getTeam(attacker.getName()) == p.getTeam(player.getName())) {
+            if (plugin.getTeam(attacker.getName()) == plugin.getTeam(player.getName())) {
                     event.setCancelled(true);
-            } else if(p.getInRangeOfEnemyTeamSpawn(attacker)){
+            } else if(plugin.getInRangeOfEnemyTeamSpawn(attacker)){
             		attacker.sendMessage(ChatColor.DARK_RED + "You cannot attack within another teams base");
                     event.setCancelled(true);
             }
@@ -141,15 +145,49 @@ public class CutePVPListener implements Listener{
 			if (arrow.getShooter() instanceof Player) {
 				Player player = (Player) event.getEntity();
 				Player shooter = (Player) arrow.getShooter();
-	            if (p.getTeam(shooter.getName()) == p.getTeam(player.getName())) {
+	            if (plugin.getTeam(shooter.getName()) == plugin.getTeam(player.getName())) {
 	                    event.setCancelled(true);
-	            } else if(p.getInRangeOfEnemyTeamSpawn(shooter)){
+	            } else if(plugin.getInRangeOfEnemyTeamSpawn(shooter)){
 	            		shooter.sendMessage(ChatColor.DARK_RED + "You cannot attack within another teams base");
 	                    event.setCancelled(true);
 	            }
 			}
 		}
 	}
+        
+        @EventHandler(priority= EventPriority.HIGHEST, ignoreCancelled = true)
+        public void onPlayerInteract(PlayerInteractEvent event) {
+            if (event.getPlayer().getGameMode() == GameMode.CREATIVE || event.getAction() != Action.RIGHT_CLICK_BLOCK) {
+                return;
+            }
+            
+            Player player = event.getPlayer();
+            Block b = event.getClickedBlock();
+            if (b.getType() != Material.WOOL) {
+                return;
+            }
+            
+            String woolTeamName = plugin.woolColorToTeamName((short)b.getData());
+            
+            Location blockLoc = plugin.getTeamFlagLoc(woolTeamName);
+            
+            if (b.getLocation().getBlockX() == blockLoc.getBlockX() &&
+                    b.getLocation().getBlockY() == blockLoc.getBlockY() &&
+                    b.getLocation().getBlockZ() == blockLoc.getBlockZ()) {
+                String carrierTeamName = plugin.teamName(event.getPlayer().getName());
+                
+                if (carrierTeamName == woolTeamName) {
+                    String carryFor = plugin.carrierFor(player);
+                    
+                    if (carryFor != null) {
+                        if (!carryFor.equalsIgnoreCase(carrierTeamName)) {
+                            plugin.capForTeam(carrierTeamName);
+                            plugin.messageCap(carrierTeamName, carryFor);
+                        }
+                    }
+                }
+            }
+        }
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onPlayerChat(PlayerChatEvent event) {
@@ -157,72 +195,48 @@ public class CutePVPListener implements Listener{
 			return;
 		}
 		Player player = event.getPlayer();
+		plugin.getLogger().info(player.getName() + ": " + ChatColor.stripColor(event.getMessage()));
 		event.setCancelled(true);
-		for (Player playeri : p.getServer().getOnlinePlayers()) {
-			if (p.getTeam(player.getName()) == p.getTeam(playeri.getName())) {
+		for (Player playeri : plugin.getServer().getOnlinePlayers()) {
+			if (plugin.getTeam(player.getName()) == plugin.getTeam(playeri.getName()) || playeri.hasPermission("CutePVP.mod")) {
 				playeri.sendMessage("<" + player.getDisplayName() + "> " + ChatColor.stripColor(event.getMessage()));
 			}
 		}
 	}
 
-	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-	public void onEntityDeath(EntityDeathEvent event) {
-		if(event.getEntityType() == EntityType.PLAYER) {
-			PlayerDeathEvent pevent = (PlayerDeathEvent)event;
-			World world = pevent.getEntity().getWorld();
-			for(int i=0;i<4;i++) {
-				String team = p.teamNameFromInt(i);
-				System.out.println(team);
-				if(p.getFlagCarrier(team) == pevent.getEntity().getName()) {
-					//Return the flag!
-					Block flagblock = world.getBlockAt(
-							p.getConfig().getInt("flag."+team+".x"),
-							p.getConfig().getInt("flag."+team+".y"),
-							p.getConfig().getInt("flag."+team+".z"));
-
-					flagblock.setTypeIdAndData(35, (byte)p.woolColor(team), true);
-					p.setFlagCarrier(team, null);
-					p.chat("The "+team+" team flag has been secured!");
-				}
-			}
-		}
-	}
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void onBlockPlace(BlockPlaceEvent event) {
-		if ( event.getPlayer().getGameMode() == GameMode.CREATIVE ){
+		if ( event.getPlayer().getGameMode() == GameMode.CREATIVE ) {
 			return;
 		}
-		int team = p.isFlagBlock(event.getBlock().getX(), event.getBlock().getY(), event.getBlock().getZ());
+		int team = plugin.isFlagBlock(event.getBlock().getX(), event.getBlock().getY(), event.getBlock().getZ());
 		if (team != -1) {
 			event.setCancelled(true);
 		}
-		if (p.getInRangeOfEnemyTeamSpawn(event.getPlayer())) {
+		if (plugin.getInRangeOfEnemyTeamSpawn(event.getPlayer())) {
 			event.getPlayer().sendMessage(ChatColor.DARK_RED + "You cannot build in an enemy base");
 			event.setCancelled(true);
 		}
 	}
 	
-	
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent event) {
-		if ( event.getPlayer().getGameMode() == GameMode.CREATIVE ){
+		if ( event.getPlayer().getGameMode() == GameMode.CREATIVE ) {
 			return;
 		}
 		Player player = event.getPlayer();
 		//Check if it's a flag
-		int team = p.isFlagBlock(event.getBlock().getX(), event.getBlock().getY(), event.getBlock().getZ());
+		int team = plugin.isFlagBlock(event.getBlock().getX(), event.getBlock().getY(), event.getBlock().getZ());
 		if (team != -1) {
 			System.out.println("Destroyed a flag block!");
 			
-			String woolTeamName = p.teamNameFromInt(team);
-			String carrierTeamName = p.teamName(event.getPlayer().getName());
+			String woolTeamName = plugin.teamNameFromInt(team);
+			String carrierTeamName = plugin.teamName(event.getPlayer().getName());
 			
 			//Enemy player...
-			System.out.println(woolTeamName);
-			System.out.println(carrierTeamName);
 			if(woolTeamName != carrierTeamName) {
-				p.chat(player.getDisplayName() + " has the " + woolTeamName + " team flag!");
-				p.setFlagCarrier(woolTeamName, player.getName());
+				plugin.getServer().broadcastMessage(player.getDisplayName() + " has the " + woolTeamName + " team flag!");
+				plugin.setFlagCarrier(woolTeamName, player.getName());
 				//event.getBlock().setTypeIdAndData(35, event.getBlock().getData(), true);
 				ItemStack stack = new ItemStack(35, 1, (short)event.getBlock().getData());
 				Inventory inv = event.getPlayer().getInventory();
@@ -234,7 +248,7 @@ public class CutePVPListener implements Listener{
 			}
 		} else {
 			//If they're in an enemy base...
-			if (p.getInRangeOfEnemyTeamSpawn(event.getPlayer())) {
+			if (plugin.getInRangeOfEnemyTeamSpawn(event.getPlayer())) {
 				event.getPlayer().sendMessage(ChatColor.DARK_RED + "You cannot build in an enemy base");
 				event.setCancelled(true);
 			}
