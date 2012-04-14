@@ -1,5 +1,6 @@
 package com.c45y.CutePVP;
 
+import java.io.Console;
 import java.util.Dictionary;
 import java.util.HashMap;
 import org.apache.commons.lang.StringUtils;
@@ -99,8 +100,8 @@ public class CutePVP extends JavaPlugin {
                 
 		getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
 			public void run() {
-				getServer().broadcastMessage(ChatColor.DARK_PURPLE + "[NOTICE] Flags are respawning!");
-				respawnFlags();
+				//getServer().broadcastMessage(ChatColor.DARK_PURPLE + "[NOTICE] Flags are respawning!");
+				//respawnFlags();
 				getLogger().info("Running buff");
 				Location powerblock = new Location(
 						getServer().getWorlds().get(0),
@@ -169,9 +170,16 @@ public class CutePVP extends JavaPlugin {
         }
         
         public void setTeamFlagLoc(String team, Location loc) {
-            getConfig().set("ctf. " + team + " .curr.x", loc.getBlockX());
-            getConfig().set("ctf. " + team + " .curr.y",loc.getBlockY());
-            getConfig().set("ctf. " + team + " .curr.z", loc.getBlockZ());
+            if (loc != null) {
+                getConfig().set("ctf. " + team + " .curr.x", loc.getBlockX());
+                getConfig().set("ctf. " + team + " .curr.y",loc.getBlockY());
+                getConfig().set("ctf. " + team + " .curr.z", loc.getBlockZ());
+            }
+            else {
+                getConfig().set("ctf. " + team + " .curr.x", null);
+                getConfig().set("ctf. " + team + " .curr.y",null);
+                getConfig().set("ctf. " + team + " .curr.z", null);
+            }
         }
         
         public Location getTeamFlagSpawnLoc(String team) {
@@ -225,6 +233,7 @@ public class CutePVP extends JavaPlugin {
                         return false;
                     }
                     if ( woolColorByName(args[0]) == 0) {
+                        System.out.println("Shit doesn't work.");
                         return false;
                     }
                     fposSet.put(sender.getName(), args[0]);
@@ -234,7 +243,7 @@ public class CutePVP extends JavaPlugin {
 	}
 
 	public int getTeam(String inpt) {
-		int value = Character.getNumericValue(ChatColor.stripColor(inpt).charAt(-1));
+		int value = Character.getNumericValue(ChatColor.stripColor(inpt).charAt(inpt.length()-1));
 		for(int i: new int[] { 10, 11, 23, 30, 33 } ) {
 			if(value == i) return 0;
 		}
@@ -324,13 +333,13 @@ public class CutePVP extends JavaPlugin {
 	}
 	
 	public byte woolColorByName(String inpt) {
-		if (inpt == "red") {
+		if (inpt.equalsIgnoreCase("red")) {
 			return 14;
-		} else if (inpt == "blue") {
+		} else if (inpt.equalsIgnoreCase("blue")) {
 			return 3;
-		} else if (inpt == "yellow") {
+		} else if (inpt.equalsIgnoreCase("yellow")) {
 			return 4;
-		} else if (inpt == "green") {
+		} else if (inpt.equalsIgnoreCase("green")) {
 			return 5;
 		}
 		return 0;
@@ -426,10 +435,12 @@ public class CutePVP extends JavaPlugin {
         Location flagSpawn = getTeamFlagSpawnLoc(woolTeamName);
         
         if (flag != null) {
+            System.out.println("Flag doesn't exist?");
             getServer().getWorlds().get(0).getBlockAt(flag).setType(Material.AIR);
         }
         
         if (flagSpawn != null) {
+            System.out.println("Flag Spawn doesn't exist?");
             getServer().getWorlds().get(0).getBlockAt(flagSpawn).setTypeIdAndData(35, (byte)woolColor(woolTeamName), true);
         }
         
@@ -446,10 +457,16 @@ public class CutePVP extends JavaPlugin {
     
     //Flag carrier of <team>'s flag
     public String getFlagCarrier(String team) {
-    	return getConfig().getString("carrier."+team);
+    	return getConfig().getString("ctf. " + team + ".carrier");
     }
     public void setFlagCarrier(String team, String player) {
-    	getConfig().set("carrier."+team, player);
+    	getConfig().set("ctf. " + team + ".carrier", player);
     }
 
+    void takeFlag(String woolTeamName, Player player) {
+        setFlagCarrier(woolTeamName, player.getName());
+        Block b = getServer().getWorlds().get(0).getBlockAt(getTeamFlagLoc(woolTeamName));
+        b.setType(Material.AIR);
+        getServer().broadcastMessage(player.getDisplayName() + " has taken the " + woolTeamName + " flag.");
+    }
 }

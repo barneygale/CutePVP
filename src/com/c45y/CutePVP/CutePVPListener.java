@@ -25,7 +25,9 @@ import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -170,12 +172,16 @@ public class CutePVPListener implements Listener{
             String woolTeamName = plugin.woolColorToTeamName((short)b.getData());
             Location blockLoc = plugin.getTeamFlagLoc(woolTeamName);
             
-            if (b.getLocation().getBlockX() == blockLoc.getBlockX() &&
+            if (plugin.fposSet.containsKey(player.getName())) {
+                plugin.setTeamFlagLoc(plugin.fposSet.get(player.getName()), b.getLocation());
+                plugin.fposSet.remove(player.getName());
+            }
+            else if (b.getLocation().getBlockX() == blockLoc.getBlockX() &&
                     b.getLocation().getBlockY() == blockLoc.getBlockY() &&
                     b.getLocation().getBlockZ() == blockLoc.getBlockZ()) {
                 String carrierTeamName = plugin.teamName(event.getPlayer().getName());
                 
-                if (carrierTeamName == woolTeamName) {
+                if (carrierTeamName.equalsIgnoreCase(woolTeamName)) {
                     
                     Location flagSpawnLoc = plugin.getTeamFlagSpawnLoc(woolTeamName);
                     
@@ -192,11 +198,32 @@ public class CutePVPListener implements Listener{
                             }
                         }
                     }
-                    
                     else {
                         plugin.returnFlag(woolTeamName);
+                        plugin.getServer().broadcastMessage(carrierTeamName + " returned their flag.");
                     }
                 }
+                else {
+                    plugin.takeFlag(woolTeamName, player);
+                }
+            }
+        }
+        
+        @EventHandler(priority= EventPriority.HIGHEST, ignoreCancelled= true)
+        public void onPlayerDisconnect(PlayerQuitEvent event) {
+            String carrierFor = plugin.carrierFor(event.getPlayer());
+            if (carrierFor != null) {
+                plugin.setTeamFlagLoc(carrierFor, event.getPlayer().getLocation().add(0, 1, 0));
+                plugin.dropTime.put(carrierFor, System.currentTimeMillis());
+            }
+        }
+        
+        @EventHandler(priority= EventPriority.HIGHEST, ignoreCancelled= true)
+        public void onPlayerKick(PlayerKickEvent event) {
+            String carrierFor = plugin.carrierFor(event.getPlayer());
+            if (carrierFor != null) {
+                plugin.setTeamFlagLoc(carrierFor, event.getPlayer().getLocation().add(0, 1, 0));
+                plugin.dropTime.put(carrierFor, System.currentTimeMillis());
             }
         }
         
@@ -246,7 +273,7 @@ public class CutePVPListener implements Listener{
 		}
 		Player player = event.getPlayer();
 		//Check if it's a flag
-		int team = plugin.isFlagBlock(event.getBlock().getX(), event.getBlock().getY(), event.getBlock().getZ());
+		/*int team = plugin.isFlagBlock(event.getBlock().getX(), event.getBlock().getY(), event.getBlock().getZ());
 		if (team != -1) {
 			System.out.println("Destroyed a flag block!");
 			
@@ -266,12 +293,12 @@ public class CutePVPListener implements Listener{
 			} else {
 				event.setCancelled(true);
 			}
-		} else {
+		} else {*/
 			//If they're in an enemy base...
 			if (plugin.getInRangeOfEnemyTeamSpawn(event.getPlayer())) {
 				event.getPlayer().sendMessage(ChatColor.DARK_RED + "You cannot build in an enemy base");
 				event.setCancelled(true);
 			}
-		}
+		//}
 	}
 }
