@@ -92,7 +92,7 @@ public class CutePVPListener implements Listener{
 		player.getInventory().setHelmet(p.returnWool(player.getName()));
 		event.setJoinMessage(player.getDisplayName() + " joined the game.");
         if (!event.getPlayer().hasPlayedBefore()) {
-            event.getPlayer().teleport(p.getRespawnTeamLocation(event.getPlayer().getName()));
+            event.getPlayer().teleport(p.getRespawnTeamLocationByTeam("all"));
         }
 	}
 	

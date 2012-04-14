@@ -24,6 +24,10 @@ public class CutePVP extends JavaPlugin {
 	@Override
 	public void onEnable() {
 		this.getConfig().options().copyDefaults(true);
+		// ALL spawn
+		this.getConfig().addDefault("spawn.all.x", getServer().getWorlds().get(0).getSpawnLocation().getX());
+		this.getConfig().addDefault("spawn.all.y", getServer().getWorlds().get(0).getSpawnLocation().getY());
+		this.getConfig().addDefault("spawn.all.z", getServer().getWorlds().get(0).getSpawnLocation().getZ());
 		// Red spawn
 		this.getConfig().addDefault("spawn.red.x", getServer().getWorlds().get(0).getSpawnLocation().getX());
 		this.getConfig().addDefault("spawn.red.y", getServer().getWorlds().get(0).getSpawnLocation().getY());
