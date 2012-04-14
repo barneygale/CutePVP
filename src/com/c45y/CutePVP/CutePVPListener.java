@@ -95,26 +95,14 @@ public class CutePVPListener implements Listener{
 		player.getInventory().setHelmet(p.returnWool(player.getName()));
 		event.setJoinMessage(player.getDisplayName() + " joined the game.");
         if (!event.getPlayer().hasPlayedBefore()) {
-            event.getPlayer().teleport(p.getRespawnTeamLocation(event.getPlayer().getName()));
+            event.getPlayer().teleport(p.getRespawnTeamLocationByTeam("all"));
         }
-		/* 
-		 * Let us forget this ever happened...
-		 * Commands/permissions are a pain to implement and maintain.
-		 * Breaks a lot more things than it adds.
-		 * 
-		 * Simply looking to 'lock' the wool block now.
-		 *
-		 * // Make a new entity to eventually replace our player with
-		 * EntityPlayer playerz = (EntityPlayer) ((CraftPlayer) player).getHandle();
-		 * WorldServer world = (WorldServer) playerz.world;
-		 * EntityTracker tracker = world.tracker;
-		 * 
-		 * // Mess with entity tracking, this makes me nervous
-		 * tracker.untrackEntity( playerz);
-		 * playerz.name = colorName(event.getPlayer().getName());
-		 * playerz.displayName = colorName(event.getPlayer().getName());
-		 * tracker.track(playerz);
-		 */
+	}
+	
+	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+	public void onPlayerQuit(PlayerJoinEvent event){
+		Player player = event.getPlayer();
+		event.setJoinMessage(player.getDisplayName() + " left the game.");
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)

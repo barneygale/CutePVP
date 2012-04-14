@@ -24,6 +24,10 @@ public class CutePVP extends JavaPlugin {
 	@Override
 	public void onEnable() {
 		this.getConfig().options().copyDefaults(true);
+		// ALL spawn
+		this.getConfig().addDefault("spawn.all.x", getServer().getWorlds().get(0).getSpawnLocation().getX());
+		this.getConfig().addDefault("spawn.all.y", getServer().getWorlds().get(0).getSpawnLocation().getY());
+		this.getConfig().addDefault("spawn.all.z", getServer().getWorlds().get(0).getSpawnLocation().getZ());
 		// Red spawn
 		this.getConfig().addDefault("spawn.red.x", getServer().getWorlds().get(0).getSpawnLocation().getX());
 		this.getConfig().addDefault("spawn.red.y", getServer().getWorlds().get(0).getSpawnLocation().getY());
@@ -65,7 +69,7 @@ public class CutePVP extends JavaPlugin {
 					if (gPowerBlock.getType() == Material.WOOL) {
 						String winTeam = woolColorToTeamName(gPowerBlock.getData());
 						if (winTeam != null) {
-							System.out.println("[NOTICE] " + winTeam + " gets buff!");
+							getServer().broadcastMessage("[NOTICE] " + winTeam + " gets buff!");
 							for (Player playeri : getServer().getOnlinePlayers()) {
 								if (teamName(playeri.getName()) == winTeam) {
 									playeri.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 12000, 0));
@@ -111,7 +115,7 @@ public class CutePVP extends JavaPlugin {
 			String str = StringUtils.join(args, " ");
 			chat("<" + sender.getName() + "> " + str);
 			for (Player playeri : getServer().getOnlinePlayers()) {
-				playeri.sendMessage("<" + sender.getName() + "> " + str);
+				playeri.sendMessage(ChatColor.RED + ">" + ChatColor.BLUE + ">" + ChatColor.GREEN + ">" + ChatColor.YELLOW + ">" + ChatColor.WHITE + " <" + colorName(sender.getName()) + "> " + str);
 			}
 			return true;
 		}
