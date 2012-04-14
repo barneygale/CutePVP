@@ -1,6 +1,5 @@
 package com.c45y.CutePVP;
 
-
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -155,7 +154,11 @@ public class CutePVPListener implements Listener{
 		}
 		Player player = event.getPlayer();
 		event.setCancelled(true);
-		p.teamChat(p.teamNameFromInt(p.getTeam(player.getName())), "<" + player.getDisplayName() + "> " + event.getMessage());
+		for (Player playeri : p.getServer().getOnlinePlayers()) {
+			if (p.getTeam(player.getName()) == p.getTeam(playeri.getName())) {
+				playeri.sendMessage("<" + player.getDisplayName() + "> " + ChatColor.stripColor(event.getMessage()));
+			}
+		}
 	}
 	
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -176,12 +179,10 @@ public class CutePVPListener implements Listener{
 	
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent event) {
-		Player player = event.getPlayer();
 		if ( event.getPlayer().getGameMode() == GameMode.CREATIVE ){
 			return;
 		}
-
-		
+		Player player = event.getPlayer();
 		//Check if it's a flag
 		int team = p.isFlagBlock(event.getBlock().getX(), event.getBlock().getY(), event.getBlock().getZ());
 		if (team != -1) {
