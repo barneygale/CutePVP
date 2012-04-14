@@ -3,3 +3,4 @@
 .settings/
 *.class
 bin/
+target/
