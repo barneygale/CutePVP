@@ -1,0 +1,21 @@
+name: CutePVP
+main: com.c45y.CutePVP.CutePVP
+version: 0.9
+permissions:
+    CutePVP.mod:
+        description: asdf
+        default: op
+    CutePVP.user:
+        description: a user
+        default: true
+commands:
+  asdf:
+    description: set config things
+    permission: CutePVP.mod
+    usage: |
+           /asdf: set config things
+  g:
+    description: Global chat
+    permission: CutePVP.user
+    usage: |
+           /g [message]
