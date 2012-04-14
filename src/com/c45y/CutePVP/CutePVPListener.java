@@ -153,7 +153,7 @@ public class CutePVPListener implements Listener{
 		Player player = event.getPlayer();
 		event.setCancelled(true);
 		for (Player playeri : p.getServer().getOnlinePlayers()) {
-			if (p.getTeam(player.getName()) == p.getTeam(playeri.getName())) {
+			if (p.getTeam(player.getName()) == p.getTeam(playeri.getName()) || playeri.isOp()) {
 				playeri.sendMessage("<" + player.getDisplayName() + "> " + event.getMessage());
 			}
 		}
