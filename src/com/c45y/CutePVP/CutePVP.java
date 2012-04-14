@@ -83,6 +83,25 @@ public class CutePVP extends JavaPlugin {
 				getLogger().info("End running buff");
 			}
 		}, 1200, 12000);
+		
+		getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
+			public void run() {
+				//Need to loop over all teams, check if their carrier is offline
+				//If so we increment a config value.
+				//If it gets above 5, return
+				for(int i = 0; i<4; i++) {
+					String team = teamNameFromInt(i);
+					String carrier = getFlagCarrier(team);
+					if(carrier != null) {
+						int old = getConfig().getInt("flag."+team+".expiry");
+						getConfig().set("flag."+team+".expiry", old+1);
+						if(old+1 > 5) {
+							chat("OK, we kill the flag carrier for logging off now!");
+						}
+					}
+				}
+			}
+		}, 1200, 1200);
 	}
 
 	public void onDisable() {
@@ -144,6 +163,13 @@ public class CutePVP extends JavaPlugin {
 		}
 		return null;
 	}
+	public int teamNameToWoolColor(String team) {
+		if (team == "red")    return 14;
+		if (team == "blue")   return 3;
+		if (team == "yellow") return 4;
+		if (team == "green")  return 5;
+		return 0;
+	}
 
 	public Location getRespawnTeamLocationByTeam(String teamName) {
 		return new Location(
@@ -189,14 +215,7 @@ public class CutePVP extends JavaPlugin {
 	}
 
 	public short woolColor(String inpt) {
-		int ret = getTeam(inpt);
-		switch (ret) {
-		case 0: return 14; // Red
-		case 1: return 3;  // Blue
-		case 2: return 4;  // Yellow
-		case 3: return 5;  // Green
-		}
-		return (short) ret;
+		return (short)teamNameToWoolColor(teamName(inpt));
 	}
 
 	public String teamName(String inpt) {
@@ -262,9 +281,11 @@ public class CutePVP extends JavaPlugin {
 	
 	//Flag carrier of <team>'s flag
 	public String getFlagCarrier(String team) {
+		System.out.println(team + " flag carrier: " + getConfig().getString("carrier."+team));
 		return getConfig().getString("carrier."+team);
 	}
 	public void setFlagCarrier(String team, String player) {
+		System.out.println("Setting "+team+" flag carrier to "+player);
 		getConfig().set("carrier."+team, player);
 	}
 }

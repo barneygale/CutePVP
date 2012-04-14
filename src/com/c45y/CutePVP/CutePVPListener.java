@@ -3,9 +3,11 @@ package com.c45y.CutePVP;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Arrow;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -13,6 +15,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerChatEvent;
@@ -160,7 +164,29 @@ public class CutePVPListener implements Listener{
 			}
 		}
 	}
-	
+
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+	public void onEntityDeath(EntityDeathEvent event) {
+		if(event.getEntityType() == EntityType.PLAYER) {
+			PlayerDeathEvent pevent = (PlayerDeathEvent)event;
+			World world = pevent.getEntity().getWorld();
+			for(int i=0;i<4;i++) {
+				String team = p.teamNameFromInt(i);
+				System.out.println(team);
+				if(p.getFlagCarrier(team) == pevent.getEntity().getName()) {
+					//Return the flag!
+					Block flagblock = world.getBlockAt(
+							p.getConfig().getInt("flag."+team+".x"),
+							p.getConfig().getInt("flag."+team+".y"),
+							p.getConfig().getInt("flag."+team+".z"));
+
+					flagblock.setTypeIdAndData(35, (byte)p.woolColor(team), true);
+					p.setFlagCarrier(team, null);
+					p.chat("The "+team+" team flag has been secured!");
+				}
+			}
+		}
+	}
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void onBlockPlace(BlockPlaceEvent event) {
 		if ( event.getPlayer().getGameMode() == GameMode.CREATIVE ){
@@ -188,11 +214,13 @@ public class CutePVPListener implements Listener{
 		if (team != -1) {
 			System.out.println("Destroyed a flag block!");
 			
-			String woolTeamName = p.woolColorToTeamName((short)event.getBlock().getData());
+			String woolTeamName = p.teamNameFromInt(team);
 			String carrierTeamName = p.teamName(event.getPlayer().getName());
 			
 			//Enemy player...
-			if(woolTeamName != carrierTeamName)
+			System.out.println(woolTeamName);
+			System.out.println(carrierTeamName);
+			if(woolTeamName != carrierTeamName) {
 				p.chat(player.getDisplayName() + " has the " + woolTeamName + " team flag!");
 				p.setFlagCarrier(woolTeamName, player.getName());
 				//event.getBlock().setTypeIdAndData(35, event.getBlock().getData(), true);
