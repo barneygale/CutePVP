@@ -156,7 +156,7 @@ public class CutePVPListener implements Listener{
 		p.getLogger().info(player.getName() + ": " + ChatColor.stripColor(event.getMessage()));
 		event.setCancelled(true);
 		for (Player playeri : p.getServer().getOnlinePlayers()) {
-			if (p.getTeam(player.getName()) == p.getTeam(playeri.getName()) || playeri.isOp()) {
+			if (p.getTeam(player.getName()) == p.getTeam(playeri.getName()) || playeri.hasPermission("CutePVP.mod")) {
 				playeri.sendMessage("<" + player.getDisplayName() + "> " + ChatColor.stripColor(event.getMessage()));
 			}
 		}

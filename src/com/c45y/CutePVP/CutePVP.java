@@ -1,7 +1,5 @@
 package com.c45y.CutePVP;
 
-import java.util.logging.Logger;
-
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -19,7 +17,6 @@ import org.bukkit.potion.PotionEffectType;
 
 public class CutePVP extends JavaPlugin {
 	private final CutePVPListener loglistener = new CutePVPListener(this);
-	Logger log = Logger.getLogger("Minecraft");
 
 	@Override
 	public void onEnable() {
@@ -69,12 +66,11 @@ public class CutePVP extends JavaPlugin {
 					if (gPowerBlock.getType() == Material.WOOL) {
 						String winTeam = woolColorToTeamName(gPowerBlock.getData());
 						if (winTeam != null) {
-							getServer().broadcastMessage("[NOTICE] " + winTeam + " gets buff!");
+							getServer().broadcastMessage(ChatColor.DARK_PURPLE + "[NOTICE] " + winTeam + " gets buff!");
 							for (Player playeri : getServer().getOnlinePlayers()) {
 								if (teamName(playeri.getName()) == winTeam) {
 									playeri.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 12000, 0));
 									playeri.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 1200, 1));
-									playeri.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 12000, 0));
 								}
 							}
 						}
@@ -86,7 +82,7 @@ public class CutePVP extends JavaPlugin {
 	}
 
 	public void onDisable() {
-		log.info("playzorz disabled.");
+		System.out.println(this.toString() + " disabled");
 	}
 
 	@Override
