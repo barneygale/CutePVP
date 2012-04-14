@@ -20,8 +20,6 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 
 public class CutePVPListener implements Listener{
 	public final CutePVP p;
@@ -119,7 +117,7 @@ public class CutePVPListener implements Listener{
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-	public void onEntityDamageByEntity(EntityDamageByEntityEvent event){
+	public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
 		if (!(event.getEntity() instanceof Player)) {
 			return;
 		}
@@ -165,7 +163,7 @@ public class CutePVPListener implements Listener{
 	
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void onBlockPlace(BlockPlaceEvent event) {
-		if ( event.getPlayer().getGameMode() == GameMode.CREATIVE ){
+		if ( event.getPlayer().getGameMode() == GameMode.CREATIVE ) {
 			return;
 		}
 		int team = p.isFlagBlock(event.getBlock().getX(), event.getBlock().getY(), event.getBlock().getZ());
@@ -181,7 +179,7 @@ public class CutePVPListener implements Listener{
 	
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent event) {
-		if ( event.getPlayer().getGameMode() == GameMode.CREATIVE ){
+		if ( event.getPlayer().getGameMode() == GameMode.CREATIVE ) {
 			return;
 		}
 		Player player = event.getPlayer();
@@ -195,14 +193,8 @@ public class CutePVPListener implements Listener{
 			
 			//Enemy player...
 			if(woolTeamName != carrierTeamName) {
-				p.chat(player.getDisplayName() + " has the " + woolTeamName + " team flag!");
-				p.setFlagCarrier(woolTeamName, player.getName());
-				//event.getBlock().setTypeIdAndData(35, event.getBlock().getData(), true);
-				ItemStack stack = new ItemStack(35, 1, (short)event.getBlock().getData());
-				Inventory inv = event.getPlayer().getInventory();
-				inv.addItem(stack);
-				event.getBlock().setTypeId(0);
-				event.setCancelled(true);
+				p.getServer().broadcastMessage(player.getDisplayName() + " destroyed " + woolTeamName + " team flag!");
+				p.getConfig().set("count." + carrierTeamName, p.getConfig().getInt("count." + carrierTeamName) + 1);
 			} else {
 				event.setCancelled(true);
 			}

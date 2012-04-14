@@ -47,7 +47,10 @@ public class CutePVP extends JavaPlugin {
 		this.getConfig().addDefault("block.buff.z", getServer().getWorlds().get(0).getSpawnLocation().getZ());
 
 		this.getConfig().addDefault("base.protection.radius", 50);
-
+		this.getConfig().addDefault("count.red", 0);
+		this.getConfig().addDefault("count.blue", 0);
+		this.getConfig().addDefault("count.yellow", 0);
+		this.getConfig().addDefault("count.green", 0);
 		saveConfig();
 		PluginManager pm = getServer().getPluginManager();
 		pm.registerEvents(loglistener, this);
@@ -55,6 +58,8 @@ public class CutePVP extends JavaPlugin {
 
 		getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
 			public void run() {
+				getServer().broadcastMessage(ChatColor.DARK_PURPLE + "[NOTICE] Flags are respawning!");
+				respawnFlags();
 				getLogger().info("Running buff");
 				Location powerblock = new Location(
 						getServer().getWorlds().get(0),
@@ -193,6 +198,19 @@ public class CutePVP extends JavaPlugin {
 		}
 		return (short) ret;
 	}
+	
+	public byte woolColorByName(String inpt) {
+		if (inpt == "red") {
+			return 14;
+		} else if (inpt == "blue") {
+			return 3;
+		} else if (inpt == "yellow") {
+			return 4;
+		} else if (inpt == "green") {
+			return 5;
+		}
+		return 0;
+	}
 
 	public String teamName(String inpt) {
 		int ret = getTeam(inpt);
@@ -229,6 +247,7 @@ public class CutePVP extends JavaPlugin {
 		retName += (inpt + ChatColor.WHITE);
 		return retName;
 	}
+	
 	public int isFlagBlock(int x, int y, int z) {
 		for(int i=0; i<4; i++) {
 			String teamName = teamNameFromInt(i);
@@ -242,24 +261,16 @@ public class CutePVP extends JavaPlugin {
 		}
 		return -1;
 	}
-	public void chat(String message) {
-		for (Player playeri : getServer().getOnlinePlayers()) {
-			playeri.sendMessage(message);
-		}
-	}
-	public void teamChat(String team, String message) {
-		for (Player playeri : getServer().getOnlinePlayers()) {
-			if (teamName(playeri.getName()) == team) {
-				playeri.sendMessage(message);
-			}
-		}
-	}
 	
-	//Flag carrier of <team>'s flag
-	public String getFlagCarrier(String team) {
-		return getConfig().getString("carrier."+team);
+	public void respawnFlags() {
+		for(int i=0; i<4; i++) {
+			String teamName = teamNameFromInt(i);
+			Block flag_block = getServer().getWorlds().get(0).getBlockAt(
+					getConfig().getInt("flag." + teamName + ".x"),
+					getConfig().getInt("flag." + teamName + ".y"),
+					getConfig().getInt("flag." + teamName + ".z"));
+			flag_block.setTypeIdAndData(35, woolColorByName(teamName), false);
+		}
 	}
-	public void setFlagCarrier(String team, String player) {
-		getConfig().set("carrier."+team, player);
-	}
+
 }
