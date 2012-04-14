@@ -17,6 +17,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -229,6 +230,11 @@ public class CutePVPListener implements Listener{
         public void onPlayerDeath(PlayerDeathEvent event) {
             String carrierFor = plugin.carrierFor(event.getEntity());
             plugin.dropFlag(carrierFor, event.getEntity());
+            
+            if (event.getEntity().getKiller() != null) {
+                String team = plugin.teamName(event.getEntity().getKiller().getName());
+                plugin.killForTeam(team);
+            }
         }
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
