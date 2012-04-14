@@ -96,13 +96,6 @@ public class CutePVP extends JavaPlugin {
 		PluginManager pm = getServer().getPluginManager();
 		pm.registerEvents(loglistener, this);
 		System.out.println(this.toString() + " enabled");
-
-                getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
-
-            public void run() {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
-                }, 1200, 1200);
                 
 		getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
 			public void run() {
@@ -138,6 +131,11 @@ public class CutePVP extends JavaPlugin {
 				//Need to loop over all teams, check if their carrier is offline
 				//If so we increment a config value.
 				//If it gets above 5, return
+                            for (String s : dropTime.keySet()) {
+                                if (System.currentTimeMillis() - dropTime.get(s) > 600000) {
+                                    returnFlag(s);
+                                }
+                            }
 				for(int i = 0; i<4; i++) {
 					String team = teamNameFromInt(i);
 					String carrier = getFlagCarrier(team);
@@ -421,6 +419,8 @@ public class CutePVP extends JavaPlugin {
         if (flagSpawn != null) {
             getServer().getWorlds().get(0).getBlockAt(flagSpawn).setTypeIdAndData(35, (byte)woolColor(woolTeamName), true);
         }
+        
+        setFlagCarrier(woolTeamName, null);
     }
         
     public void teamChat(String team, String message) {
