@@ -173,6 +173,7 @@ public class CutePVPListener implements Listener{
             Location blockLoc = plugin.getTeamFlagLoc(woolTeamName);
             
             if (plugin.fposSet.containsKey(player.getName())) {
+                plugin.setTeamFlagSpawnLoc(plugin.fposSet.get(player.getName()), b.getLocation());
                 plugin.setTeamFlagLoc(plugin.fposSet.get(player.getName()), b.getLocation());
                 plugin.fposSet.remove(player.getName());
             }
@@ -193,14 +194,17 @@ public class CutePVPListener implements Listener{
 
                         if (carryFor != null) {
                             if (!carryFor.equalsIgnoreCase(carrierTeamName)) {
-                                plugin.capForTeam(carrierTeamName);
+                                plugin.capForTeam(carrierTeamName, carryFor);
                                 plugin.messageCap(carrierTeamName, carryFor);
                             }
                         }
                     }
                     else {
                         plugin.returnFlag(woolTeamName);
-                        plugin.getServer().broadcastMessage(carrierTeamName + " returned their flag.");
+                        if (plugin.dropTime.containsKey(woolTeamName)) {
+                            plugin.dropTime.remove(woolTeamName);
+                        }
+                        plugin.getServer().broadcastMessage(player.getDisplayName() + " returned the " + woolTeamName + " flag.");
                     }
                 }
                 else {
@@ -212,32 +216,19 @@ public class CutePVPListener implements Listener{
         @EventHandler(priority= EventPriority.HIGHEST, ignoreCancelled= true)
         public void onPlayerDisconnect(PlayerQuitEvent event) {
             String carrierFor = plugin.carrierFor(event.getPlayer());
-            if (carrierFor != null) {
-                plugin.setTeamFlagLoc(carrierFor, event.getPlayer().getLocation().add(0, 1, 0));
-                plugin.dropTime.put(carrierFor, System.currentTimeMillis());
-            }
+            plugin.dropFlag(carrierFor, event.getPlayer());
         }
         
         @EventHandler(priority= EventPriority.HIGHEST, ignoreCancelled= true)
         public void onPlayerKick(PlayerKickEvent event) {
             String carrierFor = plugin.carrierFor(event.getPlayer());
-            if (carrierFor != null) {
-                plugin.setTeamFlagLoc(carrierFor, event.getPlayer().getLocation().add(0, 1, 0));
-                plugin.dropTime.put(carrierFor, System.currentTimeMillis());
-            }
+            plugin.dropFlag(carrierFor, event.getPlayer());
         }
         
         @EventHandler(priority= EventPriority.HIGHEST, ignoreCancelled= true)
         public void onPlayerDeath(PlayerDeathEvent event) {
             String carrierFor = plugin.carrierFor(event.getEntity());
-            if (carrierFor != null) {
-                System.out.println("========= " + event.getEntity() + " is carrier for " + carrierFor);
-                plugin.setTeamFlagLoc(carrierFor, event.getEntity().getLocation().add(0, 1, 0));
-                plugin.dropTime.put(carrierFor, System.currentTimeMillis());
-            }
-            else {
-                System.out.println("========= " + event.getEntity() + " is not a carrier.");
-            }
+            plugin.dropFlag(carrierFor, event.getEntity());
         }
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -276,6 +267,12 @@ public class CutePVPListener implements Listener{
 			return;
 		}
 		Player player = event.getPlayer();
+                
+                int team = plugin.isFlagBlock(event.getBlock().getX(), event.getBlock().getY(), event.getBlock().getZ());
+		if (team > 0) {
+                    event.setCancelled(true);
+                }
+                
 		//Check if it's a flag
 		/*int team = plugin.isFlagBlock(event.getBlock().getX(), event.getBlock().getY(), event.getBlock().getZ());
 		if (team != -1) {

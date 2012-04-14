@@ -1,6 +1,7 @@
 package com.c45y.CutePVP;
 
 import java.io.Console;
+import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.HashMap;
 import org.apache.commons.lang.StringUtils;
@@ -132,11 +133,17 @@ public class CutePVP extends JavaPlugin {
 				//Need to loop over all teams, check if their carrier is offline
 				//If so we increment a config value.
 				//If it gets above 5, return
+                            ArrayList<String> keystoRemove = new ArrayList<String>();
                             for (String s : dropTime.keySet()) {
                                 if (System.currentTimeMillis() - dropTime.get(s) > 600000) {
                                     returnFlag(s);
+                                    keystoRemove.add(s);
                                 }
                             }
+                            for (String s : keystoRemove) {
+                                dropTime.remove(s);
+                            }
+                            
 				for(int i = 0; i<4; i++) {
 					String team = teamNameFromInt(i);
 					String carrier = getFlagCarrier(team);
@@ -159,35 +166,51 @@ public class CutePVP extends JavaPlugin {
         public Location getTeamFlagLoc(String team) {
             try {
                 return new Location(getServer().getWorlds().get(0),
-                        getConfig().getInt("ctf. " + team + " .curr.x"),
-                        getConfig().getInt("ctf. " + team + " .curr.y"),
-                        getConfig().getInt("ctf. " + team + " .curr.z")
+                        getConfig().getInt("ctf." + team + ".curr.x"),
+                        getConfig().getInt("ctf." + team + ".curr.y"),
+                        getConfig().getInt("ctf." + team + ".curr.z")
                 );
             }
             catch (Exception ex) {
+                ex.printStackTrace();
                 return null;
             }
         }
         
-        public void setTeamFlagLoc(String team, Location loc) {
+        public void setTeamFlagSpawnLoc(String team, Location loc) {
             if (loc != null) {
-                getConfig().set("ctf. " + team + " .curr.x", loc.getBlockX());
-                getConfig().set("ctf. " + team + " .curr.y",loc.getBlockY());
-                getConfig().set("ctf. " + team + " .curr.z", loc.getBlockZ());
+                getConfig().set("ctf." + team + ".x", loc.getBlockX());
+                getConfig().set("ctf." + team + ".y",loc.getBlockY());
+                getConfig().set("ctf." + team + ".z", loc.getBlockZ());
             }
             else {
-                getConfig().set("ctf. " + team + " .curr.x", null);
-                getConfig().set("ctf. " + team + " .curr.y",null);
-                getConfig().set("ctf. " + team + " .curr.z", null);
+                getConfig().set("ctf." + team + ".x", null);
+                getConfig().set("ctf." + team + ".y", null);
+                getConfig().set("ctf." + team + ".z", null);
             }
+            saveConfig();
+        }
+        
+        public void setTeamFlagLoc(String team, Location loc) {
+            if (loc != null) {
+                getConfig().set("ctf." + team + ".curr.x", loc.getBlockX());
+                getConfig().set("ctf." + team + ".curr.y",loc.getBlockY());
+                getConfig().set("ctf." + team + ".curr.z", loc.getBlockZ());
+            }
+            else {
+                getConfig().set("ctf." + team + ".curr.x", null);
+                getConfig().set("ctf." + team + ".curr.y", null);
+                getConfig().set("ctf." + team + ".curr.z", null);
+            }
+            saveConfig();
         }
         
         public Location getTeamFlagSpawnLoc(String team) {
             try {
                 return new Location(getServer().getWorlds().get(0),
-                        getConfig().getInt("ctf. " + team + " .x"),
-                        getConfig().getInt("ctf. " + team + " .y"),
-                        getConfig().getInt("ctf. " + team + " .z")
+                        getConfig().getInt("ctf." + team + ".x"),
+                        getConfig().getInt("ctf." + team + ".y"),
+                        getConfig().getInt("ctf." + team + ".z")
                 );
             }
             catch (Exception ex) {
@@ -232,12 +255,14 @@ public class CutePVP extends JavaPlugin {
                         }
                         return false;
                     }
-                    if ( woolColorByName(args[0]) == 0) {
+                    if (woolColorByName(args[0]) == 0) {
                         System.out.println("Shit doesn't work.");
                         return false;
                     }
                     fposSet.put(sender.getName(), args[0]);
-                    sender.sendMessage("You are now setting the " + args[0] + " flag.");
+                    sender.sendMessage(ChatColor.GREEN + "You are now setting the " + args[0] + " flag.");
+                    
+                    return true;
                 }
 		return false;
 	}
@@ -422,8 +447,11 @@ public class CutePVP extends JavaPlugin {
         return null;
     }
     
-    void capForTeam(String team) {
+    void capForTeam(String team, String teamCap) {
         getConfig().set("count." + team, getConfig().getInt("count." + team) + 1);
+        returnFlag(teamCap);
+        setFlagCarrier(teamCap, null);
+        saveConfig();
     }
     
     void messageCap(String capTeam, String cappedTeam) {
@@ -435,13 +463,19 @@ public class CutePVP extends JavaPlugin {
         Location flagSpawn = getTeamFlagSpawnLoc(woolTeamName);
         
         if (flag != null) {
-            System.out.println("Flag doesn't exist?");
+            
             getServer().getWorlds().get(0).getBlockAt(flag).setType(Material.AIR);
+        }else
+        {
+            System.out.println("Flag doesn't exist?");
         }
         
         if (flagSpawn != null) {
+            getServer().getWorlds().get(0).getBlockAt(flagSpawn).setTypeIdAndData(35, (byte)woolColorByName(woolTeamName), true);
+            setTeamFlagLoc(woolTeamName, getTeamFlagSpawnLoc(woolTeamName));
+        }
+        else {
             System.out.println("Flag Spawn doesn't exist?");
-            getServer().getWorlds().get(0).getBlockAt(flagSpawn).setTypeIdAndData(35, (byte)woolColor(woolTeamName), true);
         }
         
         setFlagCarrier(woolTeamName, null);
@@ -457,10 +491,10 @@ public class CutePVP extends JavaPlugin {
     
     //Flag carrier of <team>'s flag
     public String getFlagCarrier(String team) {
-    	return getConfig().getString("ctf. " + team.trim() + ".carrier");
+    	return getConfig().getString("ctf." + team.trim() + ".carrier");
     }
     public void setFlagCarrier(String team, String player) {
-    	getConfig().set("ctf. " + team.trim() + ".carrier", player);
+    	getConfig().set("ctf." + team.trim() + ".carrier", player);
         saveConfig();
     }
 
@@ -469,5 +503,21 @@ public class CutePVP extends JavaPlugin {
         Block b = getServer().getWorlds().get(0).getBlockAt(getTeamFlagLoc(woolTeamName));
         b.setType(Material.AIR);
         getServer().broadcastMessage(player.getDisplayName() + " has taken the " + woolTeamName + " flag.");
+        
+        if (dropTime.containsKey(woolTeamName)) {
+            dropTime.remove(woolTeamName);
+        }
+    }
+
+    void dropFlag(String carrierFor, Player player) {
+        if (carrierFor != null) {
+            setTeamFlagLoc(carrierFor, player.getLocation().add(0, 1, 0));
+            getServer().getWorlds().get(0).getBlockAt(getTeamFlagLoc(carrierFor)).setTypeIdAndData(35, (byte)woolColorByName(carrierFor), true);
+            setFlagCarrier(carrierFor, null);
+            dropTime.put(carrierFor, System.currentTimeMillis());
+            getServer().broadcastMessage(ChatColor.GREEN + player.getName() + " has droppped the " + carrierFor + " flag.");
+        }
+        else {
+        }
     }
 }
