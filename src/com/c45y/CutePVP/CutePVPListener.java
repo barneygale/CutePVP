@@ -15,6 +15,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -152,6 +153,20 @@ public class CutePVPListener implements Listener{
 	            		shooter.sendMessage(ChatColor.DARK_RED + "You cannot attack within another teams base");
 	                    event.setCancelled(true);
 	            }
+			}
+		}
+	}
+	
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+	public void onPlayerChat(PlayerChatEvent event) {
+		if ( event.getPlayer().getGameMode() == GameMode.CREATIVE ){
+			return;
+		}
+		Player player = event.getPlayer();
+		event.setCancelled(true);
+		for (Player playeri : p.getServer().getOnlinePlayers()) {
+			if (p.getTeam(player.getName()) == p.getTeam(playeri.getName())) {
+				playeri.sendMessage("<" + player.getDisplayName() + "> " + event.getMessage());
 			}
 		}
 	}

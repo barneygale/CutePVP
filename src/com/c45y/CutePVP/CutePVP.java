@@ -76,8 +76,9 @@ public class CutePVP extends JavaPlugin {
 							System.out.println("[NOTICE] " + winTeam + " gets buff!");
 							for (Player playeri : getServer().getOnlinePlayers()) {
 								if (teamName(playeri.getName()) == winTeam) {
-									playeri.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1200, 1));
-									playeri.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 60, 0));
+									playeri.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 12000, 0));
+									playeri.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 1200, 1));
+									playeri.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 12000, 0));
 								}
 							}
 						}
