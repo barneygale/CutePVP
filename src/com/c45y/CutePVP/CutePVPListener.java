@@ -188,11 +188,13 @@ public class CutePVPListener implements Listener{
 		if (team != -1) {
 			System.out.println("Destroyed a flag block!");
 			
+			String woolTeamName = p.woolColorToTeamName((short)event.getBlock().getData());
+			String carrierTeamName = p.teamName(event.getPlayer().getName());
+			
 			//Enemy player...
-			if (p.getInRangeOfEnemyTeamSpawn(event.getPlayer())) {
-				String teamName = p.woolColorToTeamName((short)event.getBlock().getData());
-				p.chat(player.getDisplayName() + " has the " + teamName + " team flag!");
-				p.setFlagCarrier(teamName, player.getName());
+			if(woolTeamName != carrierTeamName)
+				p.chat(player.getDisplayName() + " has the " + woolTeamName + " team flag!");
+				p.setFlagCarrier(woolTeamName, player.getName());
 				//event.getBlock().setTypeIdAndData(35, event.getBlock().getData(), true);
 				ItemStack stack = new ItemStack(35, 1, (short)event.getBlock().getData());
 				Inventory inv = event.getPlayer().getInventory();
