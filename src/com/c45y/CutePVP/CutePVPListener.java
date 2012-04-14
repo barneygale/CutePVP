@@ -1,5 +1,6 @@
 package com.c45y.CutePVP;
 
+
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -20,6 +21,8 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 
 public class CutePVPListener implements Listener{
 	public final CutePVP p;
@@ -94,12 +97,24 @@ public class CutePVPListener implements Listener{
         if (!event.getPlayer().hasPlayedBefore()) {
             event.getPlayer().teleport(p.getRespawnTeamLocation(event.getPlayer().getName()));
         }
-	}
-	
-	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-	public void onPlayerQuit(PlayerJoinEvent event){
-		Player player = event.getPlayer();
-		event.setJoinMessage(player.getDisplayName() + " left the game.");
+		/* 
+		 * Let us forget this ever happened...
+		 * Commands/permissions are a pain to implement and maintain.
+		 * Breaks a lot more things than it adds.
+		 * 
+		 * Simply looking to 'lock' the wool block now.
+		 *
+		 * // Make a new entity to eventually replace our player with
+		 * EntityPlayer playerz = (EntityPlayer) ((CraftPlayer) player).getHandle();
+		 * WorldServer world = (WorldServer) playerz.world;
+		 * EntityTracker tracker = world.tracker;
+		 * 
+		 * // Mess with entity tracking, this makes me nervous
+		 * tracker.untrackEntity( playerz);
+		 * playerz.name = colorName(event.getPlayer().getName());
+		 * playerz.displayName = colorName(event.getPlayer().getName());
+		 * tracker.track(playerz);
+		 */
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -160,6 +175,10 @@ public class CutePVPListener implements Listener{
 		if ( event.getPlayer().getGameMode() == GameMode.CREATIVE ){
 			return;
 		}
+		int team = p.isFlagBlock(event.getBlock().getX(), event.getBlock().getY(), event.getBlock().getZ());
+		if (team != -1) {
+			event.setCancelled(true);
+		}
 		if (p.getInRangeOfEnemyTeamSpawn(event.getPlayer())) {
 			event.getPlayer().sendMessage(ChatColor.DARK_RED + "You cannot build in an enemy base");
 			event.setCancelled(true);
@@ -169,17 +188,37 @@ public class CutePVPListener implements Listener{
 	
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent event) {
-		int team = p.isFlagBlock(event.getBlock().getX(), event.getBlock().getY(), event.getBlock().getZ());
-		if (team != -1) {
-			
-			
-		}
+		Player player = event.getPlayer();
 		if ( event.getPlayer().getGameMode() == GameMode.CREATIVE ){
 			return;
 		}
-		if (p.getInRangeOfEnemyTeamSpawn(event.getPlayer())) {
-			event.getPlayer().sendMessage(ChatColor.DARK_RED + "You cannot build in an enemy base");
-			event.setCancelled(true);
+
+		
+		//Check if it's a flag
+		int team = p.isFlagBlock(event.getBlock().getX(), event.getBlock().getY(), event.getBlock().getZ());
+		if (team != -1) {
+			System.out.println("Destroyed a flag block!");
+			
+			//Enemy player...
+			if (p.getInRangeOfEnemyTeamSpawn(event.getPlayer())) {
+				String teamName = p.woolColorToTeamName((short)event.getBlock().getData());
+				p.chat(player.getDisplayName() + " has the " + teamName + " team flag!");
+				p.setFlagCarrier(teamName, player.getName());
+				//event.getBlock().setTypeIdAndData(35, event.getBlock().getData(), true);
+				ItemStack stack = new ItemStack(35, 1, (short)event.getBlock().getData());
+				Inventory inv = event.getPlayer().getInventory();
+				inv.addItem(stack);
+				event.getBlock().setTypeId(0);
+				event.setCancelled(true);
+			} else {
+				event.setCancelled(true);
+			}
+		} else {
+			//If they're in an enemy base...
+			if (p.getInRangeOfEnemyTeamSpawn(event.getPlayer())) {
+				event.getPlayer().sendMessage(ChatColor.DARK_RED + "You cannot build in an enemy base");
+				event.setCancelled(true);
+			}
 		}
 	}
 }
