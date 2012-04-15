@@ -302,10 +302,10 @@ public class CutePVP extends JavaPlugin {
 		return null;
 	}
 	public int teamNameToWoolColor(String team) {
-		if (team == "red")    return 14;
-		if (team == "blue")   return 3;
-		if (team == "yellow") return 4;
-		if (team == "green")  return 5;
+		if ("red".equals(team))    return 14;
+		if ("blue".equals(team))   return 3;
+		if ("yellow".equals(team)) return 4;
+		if ("green".equals(team))  return 5;
 		return 0;
 	}
 
@@ -320,28 +320,28 @@ public class CutePVP extends JavaPlugin {
 	public boolean getInRangeOfEnemyTeamSpawn(Player player) {
 		int rad = getConfig().getInt("base.protection.radius");
 		Location player_loc = player.getLocation();
-		if (teamName(player.getName()) != "red") {
+		if (!teamName(player.getName()).equalsIgnoreCase("red")) {
 			Location _spawn = getRespawnTeamLocationByTeam("red");
 			double dx = _spawn.getX() - player_loc.getX();
 			double dz = _spawn.getZ() - player_loc.getZ();
 			if ((dx<rad && dx>-rad) && (dz<rad && dz>-rad)) {
 				return true;
 			}
-		} else if (teamName(player.getName()) != "blue") {
+		} else if (!teamName(player.getName()).equalsIgnoreCase("blue")) {
 			Location _spawn = getRespawnTeamLocationByTeam("blue");
 			double dx = _spawn.getX() - player_loc.getX();
 			double dz = _spawn.getZ() - player_loc.getZ();
 			if ((dx<rad && dx>-rad) && (dz<rad && dz>-rad)) {
 				return true;
 			}
-		} else if (teamName(player.getName()) != "yellow") {
+		} else if (!teamName(player.getName()).equalsIgnoreCase("yellow")) {
 			Location _spawn = getRespawnTeamLocationByTeam("yellow");
 			double dx = _spawn.getX() - player_loc.getX();
 			double dz = _spawn.getZ() - player_loc.getZ();
 			if ((dx<rad && dx>-rad) && (dz<rad && dz>-rad)) {
 				return true;
 			}
-		} else if (teamName(player.getName()) != "green") {
+		} else if (!teamName(player.getName()).equalsIgnoreCase("green")) {
 			Location _spawn = getRespawnTeamLocationByTeam("green");
 			double dx = _spawn.getX() - player_loc.getX();
 			double dz = _spawn.getZ() - player_loc.getZ();
@@ -486,7 +486,7 @@ public class CutePVP extends JavaPlugin {
         
     public void teamChat(String team, String message) {
     	for (Player playeri : getServer().getOnlinePlayers()) {
-    		if (teamName(playeri.getName()) == team) {
+    		if (teamName(playeri.getName()).equalsIgnoreCase(team)) {
     				playeri.sendMessage(message);
     		}
     	}
