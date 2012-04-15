@@ -408,9 +408,9 @@ public class CutePVP extends JavaPlugin {
 	public int isFlagBlock(int x, int y, int z) {
 		for(int i=0; i<4; i++) {
 			String teamName = teamNameFromInt(i);
-			if( getConfig().getInt("flag." + teamName + ".x") == x &&
-				getConfig().getInt("flag." + teamName + ".y") == y &&
-				getConfig().getInt("flag." + teamName + ".z") == z) {
+			if( getConfig().getInt("ctf." + teamName + ".x") == x &&
+				getConfig().getInt("ctf." + teamName + ".y") == y &&
+				getConfig().getInt("ctf." + teamName + ".z") == z) {
 				
 				return i;
 				
