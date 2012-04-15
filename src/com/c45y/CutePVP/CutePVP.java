@@ -327,21 +327,21 @@ public class CutePVP extends JavaPlugin {
 			if ((dx<rad && dx>-rad) && (dz<rad && dz>-rad)) {
 				return true;
 			}
-		} else if (!teamName(player.getName()).equalsIgnoreCase("blue")) {
+		} if (!teamName(player.getName()).equalsIgnoreCase("blue")) {
 			Location _spawn = getRespawnTeamLocationByTeam("blue");
 			double dx = _spawn.getX() - player_loc.getX();
 			double dz = _spawn.getZ() - player_loc.getZ();
 			if ((dx<rad && dx>-rad) && (dz<rad && dz>-rad)) {
 				return true;
 			}
-		} else if (!teamName(player.getName()).equalsIgnoreCase("yellow")) {
+		} if (!teamName(player.getName()).equalsIgnoreCase("yellow")) {
 			Location _spawn = getRespawnTeamLocationByTeam("yellow");
 			double dx = _spawn.getX() - player_loc.getX();
 			double dz = _spawn.getZ() - player_loc.getZ();
 			if ((dx<rad && dx>-rad) && (dz<rad && dz>-rad)) {
 				return true;
 			}
-		} else if (!teamName(player.getName()).equalsIgnoreCase("green")) {
+		} if (!teamName(player.getName()).equalsIgnoreCase("green")) {
 			Location _spawn = getRespawnTeamLocationByTeam("green");
 			double dx = _spawn.getX() - player_loc.getX();
 			double dz = _spawn.getZ() - player_loc.getZ();
