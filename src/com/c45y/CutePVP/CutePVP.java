@@ -1,10 +1,9 @@
 package com.c45y.CutePVP;
 
-import java.io.Console;
 import java.util.ArrayList;
-import java.util.Dictionary;
 import java.util.HashMap;
 import org.apache.commons.lang.StringUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -138,6 +137,21 @@ public class CutePVP extends JavaPlugin {
 				//Need to loop over all teams, check if their carrier is offline
 				//If so we increment a config value.
 				//If it gets above 5, return
+				
+				//First, update flag locations...
+				for(int i = 0; i<4; i++) {
+					String carrierName = getFlagCarrier(teamNameFromInt(i));
+					if(carrierName != null) {
+						Player carrier = Bukkit.getServer().getPlayer(carrierName);
+						if(carrier != null) {
+							System.out.println("Wrote an updated player flag position!");
+							setTeamFlagLoc(teamNameFromInt(i), carrier.getLocation());
+						}
+						
+					}
+					
+				}
+				
                             ArrayList<String> keystoRemove = new ArrayList<String>();
                             for (String s : dropTime.keySet()) {
                                 if (System.currentTimeMillis() - dropTime.get(s) > 600000) {
@@ -275,7 +289,7 @@ public class CutePVP extends JavaPlugin {
 			if(value == i) return 1;
 		}
 		for(int i: new int[] { 12, 13, 15, 18, 25, 31, 32 } ) {
-			if(value == i) return 2;
+			if(value == i) return 0;
 		}
 		for(int i: new int[] { 0, 16, 19, 20, 22, 24, 27, 34, 35 } ) {
 			if(value == i) return 3;
